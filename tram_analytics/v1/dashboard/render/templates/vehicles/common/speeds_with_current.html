@@ -1,0 +1,25 @@
+{% from "common/speed.html" import render_speed %}
+
+{#
+    data: SpeedStatsWithCurrent
+#}
+{% macro render_speed_stats_with_current(data, unit, decimal_places) %}
+
+<span>
+    <span>current </span>
+    <span>{{ render_speed(data.current_ms, unit, decimal_places) }}</span>
+</span>
+<span>
+    <span>max </span>
+    <span>{{ render_speed(data.max_ms, unit, decimal_places) }}</span>
+</span>
+<span>
+    <span>mean </span>
+    <span>{{ render_speed(data.mean_ms, unit, decimal_places) }}</span>
+</span>
+<span>
+    <span>median </span>
+    <span>{{ render_speed(data.median_ms, unit, decimal_places) }}</span>
+</span>
+
+{% endmacro %}

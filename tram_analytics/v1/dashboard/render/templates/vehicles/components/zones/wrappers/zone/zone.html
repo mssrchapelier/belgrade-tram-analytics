@@ -1,0 +1,33 @@
+{% from "vehicles/components/zones/wrappers/zone/speeds.html" import render_inzone_speeds %}
+{% from "vehicles/components/zones/wrappers/zone/zone_metadata.html" import render_zone_metadata %}
+
+{#
+    zone_type: str
+    data: BaseZoneInfoForVehicle
+#}
+{% macro render_zone(zone_type, data, config, ref_ts) %}
+<div class="vehicle-zone-info-container">
+
+    {{ render_zone_metadata(zone_type, data.zone_id, data.zone_numerical_id, data.description) }}
+
+    <div class="vehicle-zone-data-container">
+
+        <div class="data-item-container vehicle-data-item-container">
+            <span class="data-item-label">
+                Present in zone for:
+            </span>
+            <span class="data-item-value">
+                <span title="Period started: {{ data.present_in_zone_since_ts | get_datetime_str }}" class="with-tooltip">
+                    {{ data.present_in_zone_since_ts | get_timedelta_str(ref_ts) }}
+                </span>
+            </span>
+            <span class="data-item-value-accompanying-text">
+            </span>
+        </div>
+
+        {{ render_inzone_speeds(data.speed_in_zone_stats, config) }}
+
+    </div>
+
+</div>
+{% endmacro %}

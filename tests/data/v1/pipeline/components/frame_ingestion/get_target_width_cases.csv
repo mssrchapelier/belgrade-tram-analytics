@@ -1,0 +1,5 @@
+orig_w,orig_h,target_h,expected_target_w,description
+568,320,320,568,"same height"
+568,320,100,178,"downsample"
+568,320,640,1136,"upsample"
+568,320,,,"with null target height"

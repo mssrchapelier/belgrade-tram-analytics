@@ -1,0 +1,19 @@
+{% from "vehicles/components/zones/wrappers/car_zone.html" import render_car_zone %}
+
+{#
+    data: ZoneInfosForCarContainer
+    ref_ts: datetime
+#}
+{% macro render_car_zones(data, config, ref_ts) %}
+<div>
+
+    {% if data.intrusion_zones | length == 0 %}
+        {% include "vehicles/components/zones/no_zones_span.html" %}
+    {% else %}
+        {% for intrusion_zone in data.intrusion_zones %}
+            {{ render_car_zone(intrusion_zone, config, ref_ts) }}
+        {% endfor %}
+    {% endif %}
+
+</div>
+{% endmacro %}

@@ -1,0 +1,16 @@
+{% from "zones/wrappers/zone/base/in_zone_period/last_by_vehicle.html" import render_last_completed_by_vehicle_period %}
+
+{#
+    data: LastCompletedByVehiclePeriod
+    ref_ts: datetime
+#}
+{% macro render_previous_stop(data, config, ref_ts) %}
+<div>
+    {{
+        render_last_completed_by_vehicle_period(
+            data, config, ref_ts,
+            "Data for the last vehicle that was stationary in this zone"
+        )
+    }}
+</div>
+{% endmacro %}

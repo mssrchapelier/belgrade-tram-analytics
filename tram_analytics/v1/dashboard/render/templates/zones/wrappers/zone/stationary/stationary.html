@@ -1,0 +1,16 @@
+{% from "zones/wrappers/zone/stationary/components/current.html" import render_current_zone_stationary %}
+{% from "zones/wrappers/zone/stationary/components/previous.html" import render_previous_zone_stationary %}
+{% from "zones/wrappers/zone/stationary/components/stop.html" import render_previous_stop %}
+
+{#
+    data: PeriodsForZone
+    ref_ts: datetime
+#}
+{% macro render_zone_stationary(data, config, ref_ts) %}
+<div class="zone-stationary-container period-type-for-zone-container">
+    <h5>Stopped vehicles</h5>
+    {{ render_current_zone_stationary(data.by_at_least_one_vehicle.current_period, config, ref_ts) }}
+    {{ render_previous_zone_stationary(data.by_at_least_one_vehicle.last_completed_period, config, ref_ts) }}
+    {{ render_previous_stop(data.last_completed_by_vehicle, config, ref_ts) }}
+</div>
+{% endmacro %}

@@ -1,0 +1,39 @@
+{% from "common/speed.html" import render_speed %}
+
+{% macro render_server_settings(metadata, config) %}
+<div class="server-settings-container">
+    <div class="motion-status-determination-container">
+
+        <h6 class="motion-status-determination-header">
+            Motion status determination settings:
+        </h6>
+
+        <p class="stationary-threshold-wrapper">
+            <span class="stationary-threshold-description-span with-tooltip"
+                  title="The speed value below which the vehicle is considered to be stationary">
+                Speed threshold for stationary:
+            </span>
+            <span class="stationary-threshold-value-container">
+                {{
+                    render_speed(
+                        metadata.server_settings.stationary_global.is_stationary_speed_threshold_ms,
+                        config.speed_unit,
+                        config.speed_decimal_places
+                    )
+                }}
+            </span>
+        </p>
+
+        <p class="assessed-speed-wrapper">
+            <span class="assessed-speed-description-span with-tooltip"
+                  title="The type of speed used to assess the motion status: raw or smoothed">
+                Assessed speed:
+            </span>
+            <span class="assessed-speed-value-span">
+                {{ metadata.server_settings.stationary_global.speed_type_for_motion_status_determination }}
+            </span>
+        </p>
+
+    </div>
+</div>
+{% endmacro %}

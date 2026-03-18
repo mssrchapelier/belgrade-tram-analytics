@@ -1,0 +1,15 @@
+deployment:
+  # single_process, separate_worker_processes
+  option: separate_worker_processes
+detectors:
+  - detector_id: detector_joint
+    detector_type: yolo
+    weights_path: weights/yolo-joint.pt
+    run_kwargs:
+      imgsz: 576
+      device: cpu
+    roi:
+      policy: area_fraction
+      min_area_fraction: 0.5
+      # NOTE: this is the original ROI for cars; here this is used for trams too since the detector is the same
+      coords: [ [ 268, 254 ], [ 246, 231 ], [ 167, 127 ], [ 242, 117 ], [ 408, 234 ], [ 454, 272 ], [ 313, 300 ] ]

@@ -1,0 +1,68 @@
+{#
+    data: CurrentExistenceInZonePeriod
+    ref_ts: datetime
+#}
+{% macro render_current_existence_in_zone_period(data, config, ref_ts) %}
+<div class="in-zone-period-container">
+    <h6>Current period</h6>
+
+    <div class="data-item-group-container">
+
+        <div class="data-item-container">
+            <span class="data-item-label">
+                Current vehicles:
+            </span>
+
+            {% set vehicle_id_str = data.vehicle_ids | chain_vehicle_ids(config.uuid_truncation_length) %}
+            {%
+                set data_item_value_title_kvp =
+                "title=\"Vehicle IDs: " + vehicle_id_str + "\"" if vehicle_id_str|length > 0
+                else ""
+            %}
+            {%
+                set data_item_value_classes =
+                "with-tooltip" if vehicle_id_str|length > 0
+                else "data-item-value"
+            %}
+
+            <span class="data-item-value">
+                <span {{ data_item_value_title_kvp }} class="{{ data_item_value_classes }}">
+                    {{ data.num_vehicles }}
+                </span>
+            </span>
+            <span class="data-item-value-accompanying-text">
+            </span>
+
+        </div>
+
+        <div class="data-item-container">
+            <span class="data-item-label">
+                Maximum vehicles:
+            </span>
+            <span class="data-item-value">
+                {% if data.max_vehicles is not none %}
+                    {{ data.max_vehicles }}
+                {% else %}
+                    n/a
+                {% endif %}
+            </span>
+            <span class="data-item-value-accompanying-text">
+            </span>
+        </div>
+
+        <div class="data-item-container">
+            <span class="data-item-label">
+                Duration:
+            </span>
+            <span class="data-item-value">
+                <span title="Period started: {{ data.start_ts | get_datetime_str }}" class="with-tooltip">
+                    {{ data.start_ts | get_timedelta_str(ref_ts) }}
+                </span>
+            </span>
+            <span class="data-item-value-accompanying-text">
+            </span>
+        </div>
+
+    </div>
+</div>
+{% endmacro %}

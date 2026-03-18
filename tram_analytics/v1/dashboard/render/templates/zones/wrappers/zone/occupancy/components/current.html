@@ -1,0 +1,11 @@
+{% from "zones/wrappers/zone/base/in_zone_period/current.html" import render_current_existence_in_zone_period %}
+
+{#
+    data: CurrentExistenceInZonePeriod
+    ref_ts: datetime
+#}
+{% macro render_current_zone_occupancy(data, config, ref_ts) %}
+<div>
+    {{ render_current_existence_in_zone_period(data, config, ref_ts) }}
+</div>
+{% endmacro %}

@@ -1,0 +1,2 @@
+speed_type_for_stationary_determination: smoothed
+is_stationary_threshold_ms: 0.5

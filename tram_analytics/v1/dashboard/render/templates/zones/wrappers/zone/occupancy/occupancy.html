@@ -1,0 +1,16 @@
+{% from "zones/wrappers/zone/occupancy/components/current.html" import render_current_zone_occupancy %}
+{% from "zones/wrappers/zone/occupancy/components/previous.html" import render_previous_zone_occupancy %}
+{% from "zones/wrappers/zone/occupancy/components/pass.html" import render_previous_pass %}
+
+{#
+    data: PeriodsForZone
+    ref_ts: datetime
+#}
+{% macro render_zone_occupancy(data, config, ref_ts) %}
+<div class="zone-occupancy-container period-type-for-zone-container">
+    <h5>Occupancy</h5>
+    {{ render_current_zone_occupancy(data.by_at_least_one_vehicle.current_period, config, ref_ts) }}
+    {{ render_previous_zone_occupancy(data.by_at_least_one_vehicle.last_completed_period, config, ref_ts) }}
+    {{ render_previous_pass(data.last_completed_by_vehicle, config, ref_ts) }}
+</div>
+{% endmacro %}

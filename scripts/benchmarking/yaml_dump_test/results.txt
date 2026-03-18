@@ -1,0 +1,9 @@
+from_json: mean 0.0493 s, std 0.0165 s per job (n = 38)
+from_pydantic: mean 0.0802 s, std 0.0130 s per job (n = 38)
+
+Paired t-test.
+- Null hypothesis: expected values for both samples are equal.
+- Alternative hypothesis: the means of the underlying distributions are not equal.
+
+Result: 0.0000
+Null hypothesis rejected?: TRUE

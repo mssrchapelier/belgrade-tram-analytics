@@ -1,0 +1,16 @@
+# Requirements for v2
+
+# async helpers
+aiostream
+
+# --- networking ---
+pyzmq
+
+# --- message queues ---
+aio-pika
+
+# --- persistence ---
+sqlalchemy
+
+# --- caching ---
+redis

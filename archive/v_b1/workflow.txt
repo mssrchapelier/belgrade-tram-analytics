@@ -1,0 +1,8 @@
+1. ingest a frame
+2. detect and track objects
+2. store results in dataframe
+
+Next steps:
+1. add multi-camera setup
+2. add car detection
+3. change dataframe to db

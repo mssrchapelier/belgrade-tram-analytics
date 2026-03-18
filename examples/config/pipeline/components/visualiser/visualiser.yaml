@@ -1,0 +1,64 @@
+out_height: 720
+to_greyscale: true
+frame_overlay:
+  frame_id_display_length: 6
+  timestamp_format: "%d-%m-%Y %H:%M:%S .%f"
+  textbox:
+    anchor: [20, 20]
+    which_corner: tl
+    bg_color: [0, 0, 0]
+    font_color: [255, 255, 255]
+    offset: [0, 0]
+    padding: [5, 5]
+    font_scale: 1.0
+    thickness: 1
+track:
+  marker_size: 5
+  line_thickness: 1
+track_state:
+  bbox_text:
+    class_id:
+      display_length: 4
+      textbox:
+        offset: [ 0, 0 ]
+        padding: [ 1, 1 ]
+        font_scale: 1.0
+        thickness: 1
+    track_id:
+      display_length: 3
+      textbox:
+        offset: [ 0, 0 ]
+        padding: [ 1, 1 ]
+        font_scale: 1.0
+        thickness: 1
+  bbox_border:
+    thickness: 2
+    unconfirmed_unmatched:
+      dash_length: 1
+      gap_length: 10
+    unconfirmed_matched:
+      dash_length: 1
+      gap_length: 5
+    confirmed_unmatched:
+      dash_length: 5
+      gap_length: 10
+roi:
+  - detector_id: detector_trams
+    color: [ 125, 73, 227 ] # E3497D (light pink)
+    thickness: 3
+    dash_length: 20
+    gap_length: 20
+  - detector_id: detector_cars
+    color: [ 253, 195, 105 ] # 69C3FD (light blue)
+    thickness: 3
+    dash_length: 20
+    gap_length: 20
+speed:
+  unit: kilometres_per_hour
+  render:
+    display_length: 3
+    textbox:
+      offset: [ 0, 0 ]
+      padding: [ 1, 1 ]
+      font_scale: 1.0
+      thickness: 1

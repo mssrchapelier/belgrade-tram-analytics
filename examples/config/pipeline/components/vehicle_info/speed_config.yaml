@@ -1,0 +1,6 @@
+smoothing:
+  window:
+    min_duration: 2.0
+    max_duration: 2.0
+  method:
+    method_name: mean_velocity

@@ -1,0 +1,24 @@
+{% from "zones/wrappers/zone/zone.html" import render_zone %}
+
+{#
+    data: TrackWithPlatforms
+    ref_ts: datetime
+#}
+{% macro render_tram_track_with_platforms(data, config, ref_ts) %}
+<div class="tram-track-with-platforms-wrapper">
+
+    {{ render_zone("Track", data.track, config, ref_ts) }}
+
+    <div class="tram-platforms-for-track-wrapper">
+
+        <h4 class="tram-platforms-for-track-header-span">
+            Platforms on this track:
+        </h4>
+
+        {% for platform in data.platforms %}
+            {{ render_zone("Platform", platform, config, ref_ts) }}
+        {% endfor %}
+    </div>
+
+</div>
+{% endmacro %}

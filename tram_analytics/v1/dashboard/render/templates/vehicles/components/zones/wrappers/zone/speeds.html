@@ -1,0 +1,62 @@
+{#
+    data: InZoneSpeeds
+#}
+{% macro render_inzone_speeds(data, config) %}
+<div>
+    {% set unit = config.speed_unit %}
+    {% set places = config.speed_decimal_places %}
+
+    <div class="speed-table-wrapper speed-table-wrapper-in-zone">
+        <table class="speed-table">
+            <caption>
+                Speed in zone
+            </caption>
+            <thead>
+                <tr class="speed-table-header-row">
+                    <th scope="col" class="speed-table-header-column">
+                    </th>
+                    <th scope="col" class="speed-table-data-column">
+                        Max
+                    </th>
+                    <th scope="col" class="speed-table-data-column">
+                        Mean
+                    </th>
+                    <th scope="col" class="speed-table-data-column">
+                        Median
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="speed-table-data-row speed-table-row-smoothed">
+                    <th scope="row" class="speed-table-header-column">
+                        smoothed
+                    </th>
+                    <td class="speed-table-data-column">
+                        {{ data.smoothed.max_ms | get_speed_value_str(unit, places) }}
+                    </td>
+                    <td class="speed-table-data-column">
+                        {{ data.smoothed.mean_ms | get_speed_value_str(unit, places) }}
+                    </td>
+                    <td class="speed-table-data-column">
+                        {{ data.smoothed.median_ms | get_speed_value_str(unit, places) }}
+                    </td>
+                </tr>
+                <tr class="speed-table-data-row speed-table-row-raw">
+                    <th scope="row" class="speed-table-header-column">
+                        raw
+                    </th>
+                    <td class="speed-table-data-column">
+                        {{ data.raw.max_ms | get_speed_value_str(unit, places) }}
+                    </td>
+                    <td class="speed-table-data-column">
+                        {{ data.raw.mean_ms | get_speed_value_str(unit, places) }}
+                    </td>
+                    <td class="speed-table-data-column">
+                        {{ data.raw.median_ms | get_speed_value_str(unit, places) }}
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endmacro %}

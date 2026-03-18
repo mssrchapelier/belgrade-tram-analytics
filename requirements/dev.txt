@@ -1,0 +1,26 @@
+# dev requirements
+
+# --- model visualisation ---
+# create ERDs based on Pydantic models, for easier inspection and analysis of the hierarchy
+# NOTE: Graphviz needs to be installed for this to work.
+# On Debian Trixie, it was necessary to install `graphviz` and `libgraphviz-dev` first
+pygraphviz
+erdantic
+pylint
+
+# --- typing ---
+# MyPy
+mypy
+mypy-extensions
+# type stubs for dependencies
+types-tqdm
+types-PyYAML
+types-shapely
+scipy-stubs
+
+# --- runtime configuration ---
+python-dotenv
+
+# frontend
+beautifulsoup4 # prettifying HTML markup output
+lxml # external C parser for speed

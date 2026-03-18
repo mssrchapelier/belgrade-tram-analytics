@@ -1,0 +1,128 @@
+# --- LiveAnalyticsState ---
+# version 0.2.0
+
+# "+" means that the functionality updating this value has been implemented
+# Status: Updating functionality fully implemented
+
+metadata:
+  request:
+    + camera_id: str
+  server_settings:
+    + speed_type_for_stationary_determination: SpeedType
+    + is_stationary_threshold_kmh: NonNegativeFloat
+    + platform_stopping_pass_stationary_for_threshold_s: NonNegativeFloat
+  live_state:
+    + frame_id: str
+    + frame_timestamp: datetime
+zones:
+  tram_zones:
+    tracks:
+    - metadata:
+        + zone_id: str
+        + zone_numerical_id: int
+        + description: str
+      occupancy:
+        continuously_occupied:
+          current_period:
+            # for how long has this zone been occupied?
+            + duration_s: NonNegativeFloat | None
+            # max vehicles during the current occupancy period?
+            + max_vehicles: PositiveInt | None
+            # how many vehicles are currently in the zone?
+            + num_vehicles: NonNegativeInt
+            # which vehicles are currently in the zone?
+            + vehicle_ids: List[str]
+          last_completed_period:
+            # how long did the previous occupancy period last?
+            + duration_s: NonNegativeFloat | None
+            # max vehicles during that period?
+            + max_vehicles: PositiveInt | None
+            # how long ago did that period end?
+            + ended_ago_s: NonNegativeFloat | None
+        last_completed_vehicle_pass:
+          # how long did the pass corresponding to the last exit by any vehicle last?
+          + duration_s: List[NonNegativeFloat] | None
+          # how long ago did a vehicle last exit this zone?
+          + ended_ago_s: NonNegativeFloat | None
+      stops:
+        continuously_with_stopped_vehicles:
+          current_period:
+            # for how long has this zone had at least one stationary vehicle in it?
+            + duration_s: NonNegativeFloat | None
+            # max stationary vehicles at any one time during this period?
+            + max_vehicles: PositiveInt | None
+            # how many vehicles are currently stationary in the zone?
+            + num_vehicles: NonNegativeInt
+            # which vehicles are currently stationary in the zone?
+            + vehicle_ids: List[str]
+          last_completed_period:
+            # for how long did the previous such period continue?
+            + duration_s: NonNegativeFloat | None
+            # max vehicles stationary at any one time during that period?
+            + max_vehicles: PositiveInt | None
+            # how long ago did that period end?
+            + ended_ago_s: NonNegativeFloat | None
+        last_completed_vehicle_stop:
+          # for how long did the last vehicle that was (but no longer is) stationary in this zone stop?
+          + duration_s: List[NonNegativeFloat] | None
+          # how long ago did that vehicle became moving?
+          + ended_ago_s: NonNegativeFloat | None
+    - ...
+    platforms:
+    - metadata:
+        ...
+        # specific to platforms:
+        + track_zone_id: str
+        + track_zone_numerical_id: int
+      ...
+    - ...
+  car_zones:
+    intrusion_zones:
+    - ...
+vehicles:
+  trams:
+    - + vehicle_id: str
+      + present_for_s: NonNegativeFloat
+      speed:
+        raw:
+          + current_kmh: NonNegativeFloat | None
+          + max_kmh: NonNegativeFloat | None
+          + mean_kmh: NonNegativeFloat | None
+          + median_kmh: NonNegativeFloat | None
+        smoothed:
+          ...
+      stationary:
+        current:
+          # for how long has this vehicle been stationary?
+          + duration_s: NonNegativeFloat | None
+          # is this vehicle stationary?
+          + is_stationary: bool | None
+        previous:
+          # for how long did this vehicle's last completed stop last?
+          + duration_s: NonNegativeFloat | None
+          # when did this vehicle's last completed stop end?
+          + ended_ago_s: NonNegativeFloat | None
+      zones:
+        tracks:
+          - + zone_id: str
+            + zone_numerical_id: int
+            # how long has this vehicle been present in this zone?
+            + present_in_zone_for_s: NonNegativeFloat
+            speed_in_zone_stats:
+              raw:
+                # without the current speed (already stated in speed.raw, speed.smoothed)
+                + max_kmh: NonNegativeFloat | None
+                + mean_kmh: NonNegativeFloat | None
+                + median_kmh: NonNegativeFloat | None
+              smoothed:
+                ...
+          - ...
+        platforms:
+          - ...
+    - ...
+  cars:
+    - ...
+      zones:
+        intrusion_zones:
+          - ...
+    - ...

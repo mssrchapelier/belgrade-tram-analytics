@@ -1,0 +1,60 @@
+{% from "vehicles/components/speeds_lifetime.html" import render_lifetime_speeds %}
+{% from "vehicles/components/motion_status.html" import render_motion_info %}
+{% from "vehicles/components/zones/car_zones.html" import render_car_zones %}
+{% from "vehicles/components/zones/tram_zones.html" import render_tram_zones %}
+
+{#
+    vehicle_type: VehicleType
+    data: Tram | Car
+#}
+{% macro render_vehicle(vehicle_type, data, config, ref_ts) %}
+
+<div class="vehicle-outer-wrapper">
+
+    <div class="vehicle-container">
+
+        <p class="vehicle-header">
+            <span class="vehicle-type-span">
+                {{ vehicle_type | capitalize }}
+            </span>
+
+            <span class="vehicle-id-span">
+                {{ data.vehicle_id | truncate_uuid(config.uuid_truncation_length) }}
+            </span>
+        </p>
+
+        <div class="vehicle-data-container-upper">
+            <div class="data-item-container vehicle-data-item-container">
+                <span class="data-item-label">
+                    Present for:
+                </span>
+
+                <span class="data-item-value">
+                    <span title="since {{ data.present_since_ts | get_datetime_str }}" class="with-tooltip">
+                        {{ data.present_since_ts | get_timedelta_str(ref_ts) }}
+                    </span>
+                </span>
+            </div>
+
+            {{ render_lifetime_speeds(data.speed, config) }}
+        </div>
+
+        {{ render_motion_info(data.motion, config, ref_ts) }}
+
+        <div class="vehicle-all-zones-container">
+
+            <h3>Zone presence</h3>
+
+            {% if vehicle_type|lower == "tram" %}
+                {{ render_tram_zones(data.zones, config, ref_ts) }}
+            {% elif vehicle_type|lower == "car" %}
+                {{ render_car_zones(data.zones, config, ref_ts) }}
+            {% endif %}
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endmacro %}

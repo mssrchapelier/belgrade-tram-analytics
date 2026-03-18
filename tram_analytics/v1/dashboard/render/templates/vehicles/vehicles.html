@@ -1,0 +1,44 @@
+{% from "vehicles/vehicle.html" import render_vehicle %}
+
+{#
+    data: VehiclesContainer
+    ref_ts: datetime
+#}
+{% macro render_vehicles(data, config, ref_ts) %}
+<div class="vehicles-container">
+    <h1>
+        <span class="dashboard-section-header-text">Vehicles</span>
+    </h1>
+
+    <div class="vehicles-inner-wrapper">
+        <div class="vehicles-vehicle-type-container">
+            <h2>Trams</h2>
+
+            {% if data.trams | length == 0 %}
+                {% include "vehicles/no_vehicles_span.html" %}
+            {% else %}
+                <div class="vehicles-vehicle-type-inner-wrapper">
+                    {% for tram in data.trams %}
+                        {{ render_vehicle("tram", tram, config, ref_ts) }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="vehicles-vehicle-type-container">
+            <h2>Cars</h2>
+
+            {% if data.cars | length == 0 %}
+                {% include "vehicles/no_vehicles_span.html" %}
+            {% else %}
+                <div class="vehicles-vehicle-type-inner-wrapper">
+                    {% for car in data.cars %}
+                        {{ render_vehicle("car", car, config, ref_ts) }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+{% endmacro %}

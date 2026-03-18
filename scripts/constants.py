@@ -1,0 +1,2 @@
+# 20250430_134215
+TIMESTAMP_FORMAT: str = "%Y%m%d_%H%M%S"

@@ -1,0 +1,13 @@
+out_to: file
+out_video_path: output/demo.mp4
+out_fps: 5.0
+progress_bar: true
+config_paths:
+  frame_ingestion: config/pipeline/components/frame_ingestion/streamer_topipe.yaml
+  visualiser: config/pipeline/components/visualiser/visualiser.yaml
+  track_colours: config/pipeline/components/visualiser/colour_palette/colours.yaml
+  detection: config/pipeline/components/detection/detection.yaml
+  zones: config/pipeline/components/vehicle_info/zones.yaml
+  speed: config/pipeline/components/vehicle_info/speed.yaml
+  homography: config/pipeline/components/vehicle_info/homography.yaml
+  scene_events: config/pipeline/components/scene_state/scene_events.yaml

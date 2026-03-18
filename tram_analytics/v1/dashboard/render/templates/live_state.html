@@ -1,0 +1,20 @@
+{% from "frame_info.html" import render_frame_info %}
+{% from "server_settings.html" import render_server_settings %}
+{% from "zones/zones.html" import render_zones %}
+{% from "vehicles/vehicles.html" import render_vehicles %}
+
+<div class="live-state-wrapper">
+
+    {{ render_frame_info(data.metadata, config, ref_ts) }}
+
+    {{ render_server_settings(data.metadata, config) }}
+
+    <div class="vehicles-and-zones-wrapper">
+
+        {{ render_vehicles(data.vehicles, config, ref_ts) }}
+
+        {{ render_zones(data.zones, config, ref_ts) }}
+
+    </div>
+
+</div>

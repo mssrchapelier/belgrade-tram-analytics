@@ -1,0 +1,11 @@
+{% from "zones/wrappers/zone/base/in_zone_period/previous.html" import render_completed_existence_in_zone_period %}
+
+{#
+    data: CompletedExistenceInZonePeriod
+    ref_ts: datetime
+#}
+{% macro render_previous_zone_stationary(data, config, ref_ts) %}
+<div>
+    {{ render_completed_existence_in_zone_period(data, config, ref_ts) }}
+</div>
+{% endmacro %}

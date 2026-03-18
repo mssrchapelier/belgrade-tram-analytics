@@ -1,0 +1,23 @@
+{% from "zones/tram_zones.html" import render_tram_zones %}
+{% from "zones/car_zones.html" import render_car_zones %}
+
+{#
+    data: ZonesContainer
+    ref_ts: datetime
+#}
+{% macro render_zones(data, config, ref_ts) %}
+<div class="zones-container">
+
+    <h1>
+        <span class="dashboard-section-header-text">
+            Zones
+        </span>
+    </h1>
+
+    <div class="zones-inner-wrapper">
+        {{ render_tram_zones(data.tram_zones, config, ref_ts) }}
+        {{ render_car_zones(data.car_zones, config, ref_ts) }}
+    </div>
+
+</div>
+{% endmacro %}

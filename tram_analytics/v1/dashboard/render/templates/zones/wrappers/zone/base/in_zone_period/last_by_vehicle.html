@@ -1,0 +1,77 @@
+{#
+    data: LastCompletedByVehiclePeriod
+    ref_ts: datetime
+    header_title: str | None // None for no tooltip
+    header_text: str
+#}
+{% macro render_last_completed_by_vehicle_period(data, config, ref_ts, header_title) %}
+<div class="in-zone-period-container">
+
+    {%
+        set header_title_kvp =
+        "title=\"" + header_title + "\"" if header_title is not none and header_title|length > 0
+        else ""
+    %}
+    {%
+        set header_classes =
+        "with-tooltip" if header_title is not none and header_title|length > 0
+        else ""
+    %}
+
+    <h6>
+        <span {{ header_title_kvp }} class="{{ header_classes }}">
+            Previous by a single vehicle
+        </span>
+    </h6>
+
+    <div class="data-item-group-container">
+
+        <div class="data-item-container">
+            <span class="data-item-label">
+                Ended:
+            </span>
+            <span class="data-item-value">
+                <span title="Period ended: {{ data.end_ts | get_datetime_str }}" class="with-tooltip">
+                    {{ data.end_ts | get_timedelta_str(ref_ts) }}
+                </span>
+            </span>
+            <span class="data-item-value-accompanying-text">
+                ago
+            </span>
+        </div>
+
+        <div class="data-item-container">
+            <span class="data-item-label">
+                Duration:
+            </span>
+
+            {# --- TODO: Refactor this container --- #}
+            <span class="data-item-value">
+                {% if data.start_timestamps is not none and data.end_ts is not none %}
+                    <span>
+                        {% for start_ts in data.start_timestamps %}
+                        <span title="Period started at: {{ start_ts | get_datetime_str }}" class="with-tooltip">
+                            {{ start_ts | get_timedelta_str(data.end_ts) }}
+                        </span>
+                        {% endfor %}
+                    </span>
+                {% else %}
+                    <span>
+                        n/a
+                    </span>
+                {% endif %}
+            </span>
+
+            <span class="data-item-value-accompanying-text">
+                {% if data.start_timestamps is not none and data.start_timestamps|length > 1 %}
+                    <span title="Multiple vehicles completed this period at the same time" class="with-tooltip">
+                        (note)
+                    </span>
+                {% endif %}
+            </span>
+        </div>
+
+    </div>
+
+</div>
+{% endmacro %}

@@ -1,0 +1,18 @@
+{% from "zones/wrappers/car_zone.html" import render_car_zone %}
+
+{#
+    data: ZoneGroupsForCarContainer
+    ref_ts: datetime
+#}
+{% macro render_car_zones(data, config, ref_ts) %}
+<div class="zone-type-zones-container">
+    <h2>Wheeled</h2>
+
+    <div class="zone-type-zones-wrapper">
+        {% for intrusion_zone in data.intrusion_zones %}
+            {{ render_car_zone(intrusion_zone, config, ref_ts) }}
+        {% endfor %}
+    </div>
+
+</div>
+{% endmacro %}

@@ -1,0 +1,8 @@
+{% macro render_speed(speed_ms, unit, decimal_places) %}
+<span class="speed-value-span">
+    {{ speed_ms | get_speed_value_str(unit, decimal_places) }}
+</span>
+<span class="speed-unit-span">
+    {{ unit | get_speed_unit_str }}
+</span>
+{% endmacro %}

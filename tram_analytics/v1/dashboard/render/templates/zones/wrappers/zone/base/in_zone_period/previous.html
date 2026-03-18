@@ -1,0 +1,58 @@
+{#
+    data: CompletedExistenceInZonePeriod
+    ref_ts: datetime
+#}
+{% macro render_completed_existence_in_zone_period(data, config, ref_ts) %}
+<div class="in-zone-period-container">
+    <h6>Previous period</h6>
+
+    <div class="data-item-group-container">
+
+        <div class="data-item-container">
+            <span class="data-item-label">
+                Maximum vehicles:
+            </span>
+            <span class="data-item-value">
+                <span>
+                    {% if data.max_vehicles is not none %}
+                        {{ data.max_vehicles }}
+                    {% else %}
+                        n/a
+                    {% endif %}
+                </span>
+            </span>
+            <span class="data-item-value-accompanying-text">
+            </span>
+        </div>
+
+        <div class="data-item-container">
+            <span class="data-item-label">
+                Ended:
+            </span>
+            <span class="data-item-value">
+                <span title="Period ended: {{ data.end_ts | get_datetime_str }}" class="with-tooltip">
+                    {{ data.end_ts | get_timedelta_str(ref_ts) }}
+                </span>
+            </span>
+            <span class="data-item-value-accompanying-text">
+                ago
+            </span>
+        </div>
+
+        <div class="data-item-container">
+            <span class="data-item-label">
+                Duration:
+            </span>
+            <span class="data-item-value">
+                <span title="Period started: {{ data.start_ts | get_datetime_str }}" class="with-tooltip">
+                    {{ data.start_ts | get_timedelta_str(data.end_ts) }}
+                </span>
+            </span>
+            <span class="data-item-value-accompanying-text">
+            </span>
+        </div>
+
+    </div>
+
+</div>
+{% endmacro %}

@@ -1,0 +1,18 @@
+{% macro render_frame_info(metadata, config, ref_timestamp) %}
+<div class="frame-info-container">
+    <p class="frame-id-container">
+        Frame
+        <span class="frame-id-span uuid">
+            {{ metadata.frame_id | truncate_uuid(config.uuid_truncation_length) }}
+        </span>
+    </p>
+    <p class="frame-ts-container">
+        <span class="timestamp-span">
+            {{ metadata.frame_timestamp | get_datetime_str }}
+        </span>
+        <span class="elapsed-time-span">
+            {{ metadata.frame_timestamp | get_timedelta_str(ref_timestamp) }} ago
+        </span>
+    </p>
+</div>
+{% endmacro %}

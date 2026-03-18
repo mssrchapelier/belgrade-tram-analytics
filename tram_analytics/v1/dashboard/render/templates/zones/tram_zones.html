@@ -1,0 +1,17 @@
+{% from "zones/wrappers/tram_track_with_platforms.html" import render_tram_track_with_platforms %}
+
+{#
+    data: ZoneGroupsForTramContainer
+    ref_ts: datetime
+#}
+{% macro render_tram_zones(data, config, ref_ts) %}
+<div class="zone-type-zones-container">
+    <h2>Rail</h2>
+
+    <div class="zone-type-zones-wrapper">
+        {% for track_with_platforms in data.tracks_with_platforms %}
+            {{ render_tram_track_with_platforms(track_with_platforms, config, ref_ts) }}
+        {% endfor %}
+    </div>
+</div>
+{% endmacro %}

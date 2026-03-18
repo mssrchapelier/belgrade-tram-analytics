@@ -1,0 +1,24 @@
+{% from "common/speed.html" import render_speed %}
+
+{#
+    data: SpeedStats
+#}
+{% macro render_speed_stats_without_current(data, config) %}
+
+{% set unit = config.speed_unit %}
+{% set decimal_places = config.speed_decimal_places %}
+
+<span>
+    <span>max </span>
+    <span>{{ render_speed(data.max_ms, unit, decimal_places) }}</span>
+</span>
+<span>
+    <span>mean </span>
+    <span>{{ render_speed(data.mean_ms, unit, decimal_places) }}</span>
+</span>
+<span>
+    <span>median </span>
+    <span>{{ render_speed(data.median_ms, unit, decimal_places) }}</span>
+</span>
+
+{% endmacro %}

@@ -1,0 +1,2 @@
+With prettify: mean 0.1421 s, std 0.0706 s per job (n = 28)
+Without prettify: mean 0.0120 s, std 0.0417 s per job (n = 23)

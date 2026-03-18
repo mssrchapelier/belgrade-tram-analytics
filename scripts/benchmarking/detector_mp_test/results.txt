@@ -1,0 +1,9 @@
+single_process: mean 0.2763 s, std 0.0057 s per job (n = 14)
+separate_processes: mean 0.2242 s, std 0.0221 s per job (n = 14)
+
+Paired t-test.
+- Null hypothesis: expected values for both samples are equal.
+- Alternative hypothesis: the means of the underlying distributions are not equal.
+
+p = 0.0000
+Null hypothesis rejected?: TRUE

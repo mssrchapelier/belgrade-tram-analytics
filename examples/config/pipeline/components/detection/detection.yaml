@@ -1,0 +1,27 @@
+deployment:
+  # single_process, separate_worker_processes
+  option: separate_worker_processes
+detectors:
+  # trams
+  - detector_id: detector_trams
+    detector_type: yolo
+    weights_path: weights/yolo-trams.pt
+    run_kwargs:
+      imgsz: 576
+      device: cpu
+    roi:
+      policy: area_fraction
+      min_area_fraction: 0.5
+      coords: [ [ 268, 254 ], [ 246, 231 ], [ 167, 127 ], [ 242, 117 ], [ 408, 234 ] ]
+  # cars
+  - detector_id: detector_cars
+    detector_type: yolo
+    weights_path: weights/yolo-cars.pt
+    run_kwargs:
+      imgsz: 640
+      device: cpu
+      classes: [ 2 ]
+    roi:
+      policy: area_fraction
+      min_area_fraction: 0.5
+      coords: [ [ 268, 254 ], [ 246, 231 ], [ 167, 127 ], [ 242, 117 ], [ 408, 234 ], [ 454, 272 ], [ 313, 300 ] ]

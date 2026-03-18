@@ -1,0 +1,39 @@
+# --- common ---
+numpy
+torch
+pydantic
+pydantic-yaml
+pyyaml
+tqdm
+
+# --- frame ingestion ---
+av # Python bindings for ffmpeg
+pytz # timezone conversions
+pystatx # get crtime of files on Linux
+
+# --- detection ---
+ultralytics
+
+# --- tracking ---
+# SORT dependencies
+filterpy
+scikit-image
+lap
+
+# --- analytics ---
+shapely
+utm # coordinate conversion
+
+# --- visualisation ---
+opencv-python
+pillow
+
+# --- networking ---
+uvicorn
+fastapi
+classy-fastapi
+aiohttp
+
+# --- frontend ---
+gradio
+jinja2 # Jinja templates

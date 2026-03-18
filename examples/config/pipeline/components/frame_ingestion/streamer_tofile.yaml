@@ -1,0 +1,13 @@
+# The resource identifier for the source video (URL, file path)
+video_resource_id: video/demo.mp4
+camera_id: cam_1
+# The index of the video track to be decoded. Default: 0
+video_track_idx: 0
+# Target image height; set to null (default) to disable resizing
+target_height: null
+# The manually set timestamp for the first frame in the video (ISO string).
+# Set to null (default) to use the file creation timestamp of the video file
+# as the first frame's timestamp.
+video_start_manual_ts: "2025-11-26T13:54:02+00:00"
+# Range (inclusive) of frames to process by the pipeline. The index of the first frame is 0.
+#frame_range: [ 0, 20 ]

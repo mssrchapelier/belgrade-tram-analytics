@@ -1,0 +1,25 @@
+{% from "zones/wrappers/zone/occupancy/occupancy.html" import render_zone_occupancy %}
+{% from "zones/wrappers/zone/stationary/stationary.html" import render_zone_stationary %}
+{% from "zones/wrappers/zone/zone_metadata.html" import render_zone_metadata %}
+
+{#
+    zone_type: str
+    data: BaseZone
+    ref_ts: datetime
+#}
+{% macro render_zone(zone_type, data, config, ref_ts) %}
+<div class="zones-zone-container">
+    {{
+        render_zone_metadata(
+            zone_type,
+            data.metadata.zone_id,
+            data.metadata.zone_numerical_id,
+            data.metadata.description,
+        )
+    }}
+    <div class="zone-periods-wrapper">
+        {{ render_zone_occupancy(data.occupancy, config, ref_ts) }}
+        {{ render_zone_stationary(data.stops, config, ref_ts) }}
+    </div>
+</div>
+{% endmacro %}

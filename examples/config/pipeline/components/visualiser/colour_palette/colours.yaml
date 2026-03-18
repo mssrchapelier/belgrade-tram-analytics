@@ -1,0 +1,66 @@
+# Palette item 1
+- lines_markers:
+    confirmed_matched:
+      line: [ 255, 13, 173 ] # AD0DFF
+      marker: [ 255, 13, 173 ] # AD0DFF
+    confirmed_unmatched:
+      line: [ 145, 0, 96 ] # 600091
+      marker: [ 145, 0, 96 ] # 600091
+    unconfirmed_matched:
+      line: [ 255, 119, 209 ] # D177FF
+      marker: [ 255, 119, 209 ] # D177FF
+    unconfirmed_unmatched:
+      line: [ 255, 168, 226 ] # E2A8FF
+      marker: [ 255, 168, 226 ] # E2A8FF
+  trackid_bg_color: [ 255, 13, 173 ] # AD0DFF
+  trackid_text_color: [ 255, 255, 255 ] # FFFFFF
+
+# Palette item 2
+- lines_markers:
+    confirmed_matched:
+      line: [ 255, 224, 5 ] # 05E0FF
+      marker: [ 255, 224, 5 ] # 05E0FF
+    confirmed_unmatched:
+      line: [ 133, 117, 0 ] # 007585
+      marker: [ 133, 117, 0 ] # 007585
+    unconfirmed_matched:
+      line: [ 255, 238, 115 ] # 73EEFF
+      marker: [ 255, 238, 115 ] # 73EEFF
+    unconfirmed_unmatched:
+      line: [ 255, 244, 165 ] # A5F4FF
+      marker: [ 255, 244, 165 ] # A5F4FF
+  trackid_bg_color: [ 255, 224, 5 ] # 05E0FF
+  trackid_text_color: [ 0, 0, 0 ] # 000000
+
+- lines_markers:
+    confirmed_matched:
+      line: [ 205, 255, 0 ] # 00FFCD
+      marker: [ 205, 255, 0 ] # 00FFCD
+    confirmed_unmatched:
+      line: [ 112, 139, 0 ] # 008B70
+      marker: [ 112, 139, 0 ] # 008B70
+    unconfirmed_matched:
+      line: [ 227, 255, 112 ] # 70FFE3
+      marker: [ 227, 255, 112 ] # 70FFE3
+    unconfirmed_unmatched:
+      line: [ 237, 255, 164 ] # A4FFED
+      marker: [ 237, 255, 164 ] # A4FFED
+  trackid_bg_color: [ 205, 255, 0 ] # 00FFCD
+  trackid_text_color: [ 0, 0, 0 ] # 000000
+
+# Palette item 3
+- lines_markers:
+    confirmed_matched:
+      line: [ 0, 255, 35 ] # 23FF00
+      marker: [ 0, 255, 35 ] # 23FF00
+    confirmed_unmatched:
+      line: [ 0, 179, 24 ] # 18B300
+      marker: [ 0, 179, 24 ] # 18B300
+    unconfirmed_matched:
+      line: [ 112, 255, 131 ] # 83FF70
+      marker: [ 112, 255, 131 ] # 83FF70
+    unconfirmed_unmatched:
+      line: [ 164, 255, 176 ] # B0FFA4
+      marker: [ 164, 255, 176 ] # B0FFA4
+  trackid_bg_color: [ 0, 255, 35 ] # 23FF00
+  trackid_text_color: [ 0, 0, 0 ] # 000000

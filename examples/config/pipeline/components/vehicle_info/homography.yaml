@@ -1,0 +1,165 @@
+method:
+  method_name: default
+defining_points:
+  - image:
+      x: 203
+      y: 118
+    world:
+      northing: 4961260.0
+      easting: 457608.0
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 241
+      y: 153
+    world:
+      northing: 4961240.5
+      easting: 457630.0
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 304
+      y: 212
+    world:
+      northing: 4961222.0
+      easting: 457652.0
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 416
+      y: 314
+    world:
+      northing: 4961204.5
+      easting: 457671.5
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 465
+      y: 216
+    world:
+      northing: 4961227.0
+      easting: 457665.5
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 420
+      y: 191
+    world:
+      northing: 4961233.0
+      easting: 457657.75
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 394
+      y: 180
+    world:
+      northing: 4961235.75
+      easting: 457654.0
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 366
+      y: 165
+    world:
+      northing: 4961241.5
+      easting: 457647.25
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 342
+      y: 156
+    world:
+      northing: 4961244.0
+      easting: 457642.0
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 286
+      y: 108
+    world:
+      northing: 4961270.0
+      easting: 457618.0
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 250
+      y: 96
+    world:
+      northing: 4961281.0
+      easting: 457600.75
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 168
+      y: 122
+    world:
+      northing: 4961256.0
+      easting: 457604.5
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 217
+      y: 191
+    world:
+      northing: 4961226.5
+      easting: 457638.0
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 266
+      y: 301
+    world:
+      northing: 4961202.5
+      easting: 457662.0
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 208
+      y: 140
+    world:
+      northing: 4961246.0
+      easting: 457620.5
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 243
+      y: 136
+    world:
+      northing: 4961249.75
+      easting: 457624.0
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 288
+      y: 224
+    world:
+      northing: 4961218.0
+      easting: 457653.25
+      zone:
+        number: 34
+        letter: "T"
+  - image:
+      x: 340
+      y: 217
+    world:
+      northing: 4961222.0
+      easting: 457656.25
+      zone:
+        number: 34
+        letter: "T"

@@ -1,0 +1,11 @@
+{% from "zones/wrappers/zone/zone.html" import render_zone %}
+
+{#
+    data: IntrusionZone
+    ref_ts: datetime
+#}
+{% macro render_car_zone(data, config, ref_ts) %}
+<div class="intrusion-zone-outer-wrapper">
+    {{ render_zone("Car intrusion zone", data, config, ref_ts) }}
+</div>
+{% endmacro %}

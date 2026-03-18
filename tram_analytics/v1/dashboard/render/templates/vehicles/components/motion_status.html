@@ -1,0 +1,91 @@
+{#
+    data: MotionInfoContainer
+#}
+{% macro render_motion_info(data, config, ref_ts) %}
+
+<div class="vehicle-data-container-motion">
+
+    <div class="data-item-container vehicle-data-item-container">
+        <span class="data-item-label motion-status-header-label">
+            <span title="Whether the vehicle is classified as moving or stationary" class="with-tooltip">
+                Motion status:
+            </span>
+        </span>
+
+        <div class="motion-status-item-container">
+            <span class="data-item-label motion-status-item-label">
+                <span title="Unchanged by undefined speeds (during occlusions, etc.)" class="with-tooltip">
+                    confirmed:
+                </span>
+            </span>
+
+            <span class="motion-status-item-value">
+                {{ data.status.confirmed }}
+            </span>
+        </div>
+
+        <div class="motion-status-item-container motion-status-item-container-momentary">
+            <span class="data-item-label motion-status-item-label">
+                <span title="Based on the current speed only (may be undefined if e. g. occluded)" class="with-tooltip">
+                    momentary:
+                </span>
+            </span>
+
+            <span class="motion-status-item-value">
+                {{ data.status.momentary }}
+            </span>
+        </div>
+    </div>
+
+    <div class="data-item-container vehicle-data-item-container">
+
+        <span class="data-item-label">
+            Stationary for:
+        </span>
+
+        <span class="data-item-value">
+            <span title="Period started: {{ data.stationary_periods.current.start_ts | get_datetime_str }}" class="with-tooltip">
+            {{ data.stationary_periods.current.start_ts | get_timedelta_str(ref_ts) }}
+            </span>
+        </span>
+
+    </div>
+
+    <div class="data-item-container vehicle-data-item-container">
+
+        <span class="data-item-label">
+            Previously stationary:
+        </span>
+
+        <span class="data-item-value">
+            <span title="Period ended: {{ data.stationary_periods.previous.end_ts | get_datetime_str }}" class="with-tooltip">
+                {{ data.stationary_periods.previous.end_ts | get_timedelta_str(ref_ts) }}
+            </span>
+        </span>
+
+        <span class="data-item-value-accompanying-text">
+            ago
+        </span>
+
+    </div>
+
+    <div class="data-item-container vehicle-data-item-container">
+
+        <span class="data-item-label">
+            Previously stationary for:
+        </span>
+
+        <span class="data-item-value">
+            <span title="Period started: {{ data.stationary_periods.previous.start_ts | get_datetime_str }}" class="with-tooltip">
+                {{ data.stationary_periods.previous.start_ts | get_timedelta_str(data.stationary_periods.previous.end_ts) }}
+            </span>
+        </span>
+
+        <span class="data-item-value-accompanying-text">
+        </span>
+
+    </div>
+
+</div>
+
+{% endmacro %}

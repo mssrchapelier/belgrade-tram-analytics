@@ -1,0 +1,31 @@
+{#
+    zone_type: str // ZoneType, but can be any string
+    zone_id: str
+    zone_numerical_id: int
+    description: str
+#}
+{% macro render_zone_metadata(zone_type, zone_id, zone_numerical_id, description) %}
+<div class="zone-metadata-container">
+
+    <div class="zone-metadata-row-1">
+        <span class="zone-type-span">
+            {{ zone_type|capitalize }}
+        </span>
+
+        <span class="zone-numerical-id-span">
+            {{ zone_numerical_id }}
+        </span>
+
+        <span class="zone-id-span">
+            {{ zone_id }}
+        </span>
+    </div>
+
+    <div class="zone-metadata-row-2">
+        <span class="zone-description-span">
+            {{ description }}
+        </span>
+    </div>
+
+</div>
+{% endmacro %}

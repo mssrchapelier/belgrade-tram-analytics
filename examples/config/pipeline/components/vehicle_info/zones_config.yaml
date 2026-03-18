@@ -1,0 +1,59 @@
+tracks:
+  zones:
+    - zone_id: "track-001"
+      zone_numerical_id: 1
+      description: "Savski trg -> Slavija"
+      coords:
+        polygon: [
+          [ 144, 76 ], [ 151, 83 ], [ 162, 92 ], [ 180, 111 ], [ 210, 142 ], [ 239, 172 ],
+          [ 272, 207 ], [ 321, 258 ], [ 380, 320 ], [ 396, 320 ], [ 331, 255 ], [ 278, 202 ],
+          [ 246, 170 ], [ 216, 140 ], [ 185, 110 ], [ 166, 91 ], [ 160, 85 ], [ 154, 80 ], [ 147, 74 ]
+        ]
+        centreline: [
+          [145, 74], [153, 81], [162, 89], [180, 108], [388, 320]
+        ]
+    - zone_id: "track-002"
+      zone_numerical_id: 2
+      description: "Slavija -> Savski trg"
+      coords:
+        polygon: [
+          [ 156, 72 ], [ 165, 78 ], [ 176, 86 ], [ 186, 94 ], [ 200, 106 ], [ 244, 144 ],
+          [ 297, 190 ], [ 349, 234 ], [ 446, 320 ], [ 464, 320 ], [ 357, 231 ], [ 305, 188 ],
+          [ 252, 143 ], [ 216, 114 ], [ 197, 98 ], [ 187, 89 ], [ 179, 83 ], [ 169, 77 ], [ 161, 71 ]
+        ]
+        centreline: [
+          [456, 320], [193, 97], [182, 88], [174, 82], [157, 71]
+        ]
+platforms:
+  zones:
+    - zone_id: "stop-067"
+      zone_numerical_id: 1
+      description: "Trg Slavija (Nemanjina) (towards Slavija) | 067"
+      coords:
+        track_zone_id: "track-001"
+        platform_endpoints_supporting_lines:
+          [
+            [[201, 140], [221, 137]],
+            [[284, 225], [307, 221]]
+          ]
+    - zone_id: "stop-068"
+      zone_numerical_id: 2
+      description: "Trg Slavija (Nemanjina) (towards Savski trg) | 068"
+      coords:
+        track_zone_id: "track-002"
+        platform_endpoints_supporting_lines:
+          [
+            [ [ 231, 137 ], [ 258, 134 ] ],
+            [ [ 323, 220 ], [ 358, 214 ] ]
+          ]
+intrusion_zones:
+  assignment_settings:
+    min_area_frac_inside_zone: 0.5
+  zones:
+    - zone_id: "intrusion-zone-001"
+      zone_numerical_id: 1
+      description: "The reserved rail track section containing tram stops 67 and 68"
+      coords:
+        polygon: [
+          [ 268, 254 ], [ 246, 231 ], [ 167, 127 ], [ 242, 117 ], [ 408, 234 ], [ 454, 272 ], [ 313, 300 ]
+        ]
