@@ -12,6 +12,7 @@ from PIL.Image import Image as ImageType
 from aiohttp import ClientSession, ClientResponse, ClientResponseError
 from gradio import Blocks, Row, Column, HTML, Image, Timer, JSON
 from pydantic import ValidationError
+from pydantic_yaml import parse_yaml_file_as
 
 from common.settings.constants import (
     PIPELINE_SERVER_HOST, PIPELINE_SERVER_PORT,
@@ -196,8 +197,15 @@ async def run_gradio_until_signal(app: Blocks) -> None:
             loop.remove_signal_handler(sig)
 
 
-async def async_run_dashboard(*, dashboard_config: DashboardConfig,
-                              live_state_renderer_config: LiveStateRendererConfig) -> None:
+async def async_run_dashboard(*, dashboard_config_path: str | Path,
+                              live_state_renderer_config_path: str | Path) -> None:
+
+    dashboard_config: DashboardConfig = parse_yaml_file_as(
+        DashboardConfig, dashboard_config_path
+    )
+    live_state_renderer_config: LiveStateRendererConfig = parse_yaml_file_as(
+        LiveStateRendererConfig, live_state_renderer_config_path
+    )
 
     async with AsyncSessionProvider() as session_provider: # type: AsyncSessionProvider
 
