@@ -85,3 +85,7 @@ def _load_asset_file(env_var: str, *, check_exists: bool) -> Path:
     if check_exists and not as_abs_path.exists():
         raise RuntimeError(f"Path does not exist: {as_abs_path}")
     return as_abs_path
+
+PIPELINE_CONFIG: Path = _load_asset_file("PIPELINE_CONFIG", check_exists=True)
+DASHBOARD_CONFIG: Path = _load_asset_file("DASHBOARD_CONFIG", check_exists=True)
+LIVE_STATE_RENDERER_CONFIG: Path = _load_asset_file("LIVE_STATE_RENDERER_CONFIG", check_exists=True)

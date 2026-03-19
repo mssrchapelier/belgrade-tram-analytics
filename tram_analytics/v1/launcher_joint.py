@@ -9,7 +9,10 @@ from common.utils.logging_utils.logging_utils import configure_global_logging, c
 from tram_analytics.v1.pipeline.server.pipeline_server import run_pipeline_server
 from tram_analytics.v1.dashboard.dashboard import async_run_dashboard
 from common.utils.logging_utils.logging_server import run_logging_server
-from common.settings.constants import LOGGING_SERVER_HOST, LOGGING_SERVER_PORT, LOGGING_LEVEL
+from common.settings.constants import (
+    LOGGING_SERVER_HOST, LOGGING_SERVER_PORT, LOGGING_LEVEL,
+    PIPELINE_CONFIG, DASHBOARD_CONFIG, LIVE_STATE_RENDERER_CONFIG
+)
 
 # child processes for components
 
@@ -100,3 +103,13 @@ def run_joint(
     pipeline_runner.join()
     dashboard_runner.join()
     logging_server_runner.join()
+
+def launch():
+    """
+    A wrapper around `run_joint(...)` that loads the arguments from environment variables.
+    """
+    run_joint(
+        pipeline_config_path=PIPELINE_CONFIG,
+        dashboard_config_path=DASHBOARD_CONFIG,
+        live_state_renderer_config_path=LIVE_STATE_RENDERER_CONFIG
+    )
