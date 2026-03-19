@@ -113,3 +113,9 @@ def launch():
         dashboard_config_path=DASHBOARD_CONFIG,
         live_state_renderer_config_path=LIVE_STATE_RENDERER_CONFIG
     )
+
+if __name__ == "__main__":
+    # Entry point for a containerised runtime environment.
+    # To run locally, environment variables must be supplied first,
+    # e. g. through loading an `.env` file using `dotenv`.
+    launch()
