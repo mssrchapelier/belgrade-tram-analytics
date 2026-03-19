@@ -5,7 +5,7 @@ from PIL.Image import Image as ImageType
 
 def pil_from_bytes(img: bytes) -> ImageType:
     with BytesIO(img) as img_stream:  # type: BytesIO
-        pil_img: ImageType = Image.open(fp=img_stream)
+        pil_img: ImageType = Image.open(img_stream)
         # allocate storage for the image so that the stream can be closed
         pil_img.load()
     return pil_img
