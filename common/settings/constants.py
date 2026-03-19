@@ -68,3 +68,20 @@ def _load_logging_level() -> int:
         raise ValueError(f"Invalid value as LOGGING_LEVEL: {as_str}") from exc
 
 LOGGING_LEVEL: int = _load_logging_level()
+
+def _load_asset_file(env_var: str, *, check_exists: bool) -> Path:
+    """
+    Loads the relative path from environment variables by the specified key,
+    resolves relative to ASSETS_DIR, and returns the absolute path.
+    :param env_var: environment variable name
+    :param check_exists: whether to check that the resolved path exists
+    """
+    as_str: str = load_envvar_as_str(env_var)
+    as_rel_path: Path = Path(as_str)
+    if as_rel_path.is_absolute():
+        raise ValueError(f"env_var must specify a relative path, got absolute: {as_rel_path}")
+    # resolve relative to ASSETS_DIR
+    as_abs_path: Path = (ASSETS_DIR / as_rel_path).resolve()
+    if check_exists and not as_abs_path.exists():
+        raise RuntimeError(f"Path does not exist: {as_abs_path}")
+    return as_abs_path
