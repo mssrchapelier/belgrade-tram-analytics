@@ -2,6 +2,7 @@ from typing import Literal, TypeAlias, TypeIs
 from pathlib import Path
 
 from common.utils.envvar import load_envvar_as_str, load_envvar_as_int
+from common.utils.logging_utils.log_levels import LoggingLevelSetting, get_logging_level_from_setting
 
 # --- Load runtime configuration from environment variables ---
 
@@ -53,3 +54,17 @@ def _load_assets_dir() -> Path:
     return as_path
 
 ASSETS_DIR: Path = _load_assets_dir()
+
+# The global logging level setting
+def _load_logging_level() -> int:
+    as_str: str = load_envvar_as_str("LOGGING_LEVEL")
+    try:
+        # load as enum
+        as_level_setting: LoggingLevelSetting = LoggingLevelSetting(as_str)
+        # load as int
+        level: int = get_logging_level_from_setting(as_level_setting)
+        return level
+    except ValueError as exc:
+        raise ValueError(f"Invalid value as LOGGING_LEVEL: {as_str}") from exc
+
+LOGGING_LEVEL: int = _load_logging_level()
