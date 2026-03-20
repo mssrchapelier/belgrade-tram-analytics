@@ -1,16 +1,13 @@
 from pydantic import BaseModel
 
 from common.utils.pydantic.types_pydantic import OpenUnitIntervalValue
-from tram_analytics.v1.models.common_types import BoundingBox
-
-
-class DetectionClass(BaseModel):
-    class_id: int
-    label: str
-
+from tram_analytics.v1.models.common_types import BoundingBox, VehicleType
 
 class RawDetection(BaseModel):
+    # Preserving the raw class ID assigned by the model, for reference.
+    # Should not be used downstream.
     class_id: int
+    vehicle_type: VehicleType
     confidence: OpenUnitIntervalValue
     # x1, x2, y1, y2: absolute values (pixels)
     bbox: BoundingBox

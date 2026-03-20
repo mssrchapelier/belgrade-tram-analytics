@@ -21,7 +21,6 @@ from tram_analytics.v1.models.components.vehicle_info import (
     PositionContainer, BaseRefPoints, TramRefPoints, CarRefPoints,
     TrackCentrelinePositions, Speeds, VehicleInfo, TramInfo, CarInfo
 )
-from tram_analytics.v1.models.det_class_mappings import get_vehicle_type
 from tram_analytics.v1.pipeline.components.vehicle_info.coord_conversion.homography import CoordConverter
 from tram_analytics.v1.pipeline.components.vehicle_info.coord_conversion.homography_config import HomographyConfig
 from tram_analytics.v1.pipeline.components.vehicle_info.settings import (
@@ -1281,7 +1280,7 @@ class ZoneAndSpeedAssigner:
         tram_states: List[TrackState] = []
         tram_indices: List[int] = []
         for original_idx, state in enumerate(states): # type: int, TrackState
-            vehicle_type: VehicleType = get_vehicle_type(state.class_id)
+            vehicle_type: VehicleType = state.vehicle_type
             if vehicle_type not in {VehicleType.CAR, VehicleType.TRAM}:
                 raise ValueError(f"Unsupported vehicle type: {vehicle_type}")
             append_state_to: List[TrackState] = (

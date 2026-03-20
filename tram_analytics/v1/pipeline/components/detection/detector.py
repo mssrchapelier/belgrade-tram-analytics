@@ -1,4 +1,4 @@
-from typing import List, override, Any
+from typing import List, Dict, override, Any
 from abc import ABC, abstractmethod
 import logging
 from logging import Logger
@@ -13,7 +13,7 @@ from ultralytics.engine.results import Boxes, Results
 from common.settings.constants import ASSETS_DIR
 from common.utils.fileops_utils import resolve_rel_path
 from common.utils.logging_utils.logging_utils import get_logger_name_for_object
-from tram_analytics.v1.models.common_types import BoundingBox
+from tram_analytics.v1.models.common_types import BoundingBox, VehicleType
 from tram_analytics.v1.models.components.detection import RawDetection
 from tram_analytics.v1.pipeline.components.detection.detection_config import (
     DetectorConfig, DetectorConfigYOLO, DetectorConfigRemoteStub
@@ -22,7 +22,10 @@ from tram_analytics.v1.pipeline.components.detection.postprocessors import BaseR
     build_roi_postprocessor
 
 
-def convert_yolo_inference_result_to_rawdetections(boxes: Boxes) -> List[RawDetection]:
+def convert_yolo_inference_result_to_rawdetections(
+        boxes: Boxes,
+        class_id_to_vehicle_type_map: Dict[int, VehicleType]
+) -> List[RawDetection]:
     """
     Convert the Boxes inference result for a single image
     into a list of RawDetection instances.
@@ -35,17 +38,23 @@ def convert_yolo_inference_result_to_rawdetections(boxes: Boxes) -> List[RawDete
     # [ [ box1_x1, ..., box1_y2 ], [box2_x1, ..., box2_y2], ... ]
     xyxy_coords_all: List[List[float]] = xyxy_src.tolist()
     conf_scores: List[float] = conf_scores_src.tolist()
-    class_ids: List[float] = class_ids_src.tolist()
+    class_ids: List[int] = [int(class_id_float) for class_id_float in class_ids_src.tolist()]
+
+    def _build_raw_detection(class_id: int,
+                             conf_score: float,
+                             xyxy_coords: List[float]) -> RawDetection:
+        if class_id not in class_id_to_vehicle_type_map:
+            raise ValueError(f"No vehicle type defined for class ID: {class_id}")
+        vehicle_type: VehicleType = class_id_to_vehicle_type_map[class_id]
+        bbox: BoundingBox = BoundingBox(x1=xyxy_coords[0],
+                                        y1=xyxy_coords[1],
+                                        x2=xyxy_coords[2],
+                                        y2=xyxy_coords[3])
+        return RawDetection(class_id=class_id, vehicle_type=vehicle_type,
+                            confidence=conf_score, bbox=bbox)
 
     detections: List[RawDetection] = [
-        RawDetection(class_id=int(class_id),
-                     confidence=conf_score,
-                     bbox=BoundingBox(
-                         x1=xyxy_coords[0],
-                         y1=xyxy_coords[1],
-                         x2=xyxy_coords[2],
-                         y2=xyxy_coords[3]
-                     ))
+        _build_raw_detection(class_id, conf_score, xyxy_coords)
         for class_id, conf_score, xyxy_coords in zip(
             class_ids, conf_scores, xyxy_coords_all
         )
@@ -145,7 +154,9 @@ class YOLODetector(BaseDetector):
         boxes: Boxes | None = results[0].boxes
         # for a detection model, boxes will not be null
         assert boxes is not None
-        raw_detections: List[RawDetection] = convert_yolo_inference_result_to_rawdetections(boxes)
+        raw_detections: List[RawDetection] = convert_yolo_inference_result_to_rawdetections(
+            boxes, class_id_to_vehicle_type_map=self._config.classes
+        )
         return raw_detections
 
 

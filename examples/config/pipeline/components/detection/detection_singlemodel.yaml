@@ -5,6 +5,9 @@ detectors:
   - detector_id: detector_joint
     detector_type: yolo
     weights_path: weights/yolo-joint.pt
+    classes:
+      0: tram
+      1: car
     run_kwargs:
       imgsz: 576
       device: cpu

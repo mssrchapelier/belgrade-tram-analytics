@@ -279,7 +279,7 @@ class Visualiser(VisualizerV2):
         )
         # colours for the bbox border and class id annotation
         bbox_colours: BboxColours = CLASS_COLOURS[
-            state_data.track_state.class_id
+            state_data.track_state.vehicle_type
         ]
 
         # conversions to legacy format
@@ -289,7 +289,7 @@ class Visualiser(VisualizerV2):
         # draw the bounding box, class ID, track ID
         _draw_track_state(img, state_legacy_scaled,
                           track_id=state_data.vehicle_id,
-                          class_id=state_data.track_state.class_id,
+                          vehicle_type=state_data.track_state.vehicle_type,
                           trackid_bg_color=colours_for_track.trackid_bg_color,
                           trackid_text_color=colours_for_track.trackid_text_color,
                           bbox_colors=bbox_colours,

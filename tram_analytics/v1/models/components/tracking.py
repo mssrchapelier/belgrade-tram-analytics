@@ -2,12 +2,12 @@ from typing import List
 
 from pydantic import BaseModel
 
-from tram_analytics.v1.models.common_types import BoundingBox
+from tram_analytics.v1.models.common_types import BoundingBox, VehicleType
 
 
 class TrackState(BaseModel):
     track_state_id: str
-    class_id: int
+    vehicle_type: VehicleType
     # TODO: rename to vehicle_id?
     track_id: str
 
@@ -25,7 +25,7 @@ class TrackHistory(BaseModel):
     # TODO: rename to vehicle_id?
     # (this very UUID is what is called vehicle_id everywhere downstream from the tracking module)
     track_id: str
-    class_id: int
+    vehicle_type: VehicleType
     history: List[TrackState]
 
 
