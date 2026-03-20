@@ -5,8 +5,7 @@ from tram_analytics.v1.models.components.scene_state.events.base import generate
 from archive.v1.src.pipeline.components.scene_state.events._old_3.subprocessors.base.base_generator import (
     BaseFinalEventGenerator, ProcessingSystemState
 )
-from tram_analytics.v1.models.common_types import MotionStatus
-from archive.v1.src.api_server.models.scene_state_settings import SpeedType
+from tram_analytics.v1.models.common_types import MotionStatus, SpeedType
 from tram_analytics.v1.models.components.scene_state.events.subprocessors.speed import SpeedUpdateEvent
 from src.v1.events.subprocessors.motion_global.updates.momentary.config import MotionStatusDeterminationSettings
 from archive.v1.src.pipeline.components.scene_state.events._old_3.subprocessors.motion_global.events import (

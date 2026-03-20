@@ -1,8 +1,7 @@
 from datetime import datetime
 from typing import List, override, Type
 
-from archive.v1.src.api_server.models.scene_state_settings import SpeedType
-from tram_analytics.v1.models.common_types import MotionStatus
+from tram_analytics.v1.models.common_types import MotionStatus, SpeedType
 from tram_analytics.v1.models.components.scene_state.events.base import generate_event_uuid
 from tram_analytics.v1.models.components.scene_state.events.subprocessors.motion_status.motion_global.updates.momentary import (
     MomentaryMotionStatusUpdate, MomentaryMotionStatusUpdatesContainer

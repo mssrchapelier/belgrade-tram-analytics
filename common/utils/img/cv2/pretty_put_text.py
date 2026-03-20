@@ -15,10 +15,11 @@ Functions:
   drawn on a solid-coloured rectangle with the specified `padding` around the entire text.
 """
 
-from typing import Tuple, Literal, TypeAlias, Set, List
+from typing import Tuple, Literal, TypeAlias, Set, List, Sequence, TypeIs
 from warnings import deprecated
 
 import cv2
+from numpy import uint8
 from numpy.typing import NDArray
 
 from common.utils.custom_types import PixelPosition, ColorTuple
@@ -27,11 +28,16 @@ Corner: TypeAlias = Literal["tl", "tr", "bl", "br"]
 
 DEFAULT_FONT_FACE: int = cv2.FONT_HERSHEY_PLAIN
 
+def _is_valid_text_size(ret: Sequence[int]) -> TypeIs[Tuple[int, int]]:
+    return len(ret) == 2 and isinstance(ret[0], int) and isinstance(ret[1], int)
+
 def _get_text_size(*args, **kwargs) -> Tuple[int, int]:
     """
     Wrapper for cv2.getTextSize(). Returns just the `(width, height)` tuple, without the baseline.
     """
-    text_size, baseline = cv2.getTextSize(*args, **kwargs) # type: Tuple[int, int], int
+    text_size, baseline = cv2.getTextSize(*args, **kwargs) # type: Sequence[int], int
+    if not _is_valid_text_size(text_size):
+        raise ValueError(f"Got invalid text size: {str(text_size)}")
     return text_size
 
 def _get_text_size_with_bg(text: str, *,
@@ -142,7 +148,7 @@ def _get_anchored_container_xyxy_coords(*, anchor: PixelPosition,
 
 
 @deprecated("Use anchor_text_line instead.")
-def pretty_put_text(img: NDArray, text: str,
+def pretty_put_text(img: NDArray[uint8], text: str,
                     *, offset_from: PixelPosition,
                     offset: Tuple[int, int], # x, y
                     color: ColorTuple,
@@ -175,7 +181,7 @@ def pretty_put_text(img: NDArray, text: str,
                 color=color, fontFace=font_face, fontScale=font_scale,
                 thickness=thickness, lineType=line_type)
 
-def write_line_with_bg(img: NDArray,
+def write_line_with_bg(img: NDArray[uint8],
                        text: str, *,
                        # the top left corner of the text line including the background
                        line_pos_tl: PixelPosition,
@@ -208,7 +214,7 @@ def write_line_with_bg(img: NDArray,
                 font_color, thickness, lineType=line_type)
 
 
-def write_lines_with_bg(img: NDArray,
+def write_lines_with_bg(img: NDArray[uint8],
                         text_lines: List[str],
                         *, lines_pos_tl: PixelPosition,
                         line_spacing: int = 5,
@@ -243,7 +249,7 @@ def write_lines_with_bg(img: NDArray,
             font_scale=font_scale, thickness=thickness, line_type=line_type
         )
 
-def write_lines_on_rect_overlay(img: NDArray,
+def write_lines_on_rect_overlay(img: NDArray[uint8],
                                 text_lines: List[str],
                                 *, overlay_tl: PixelPosition,
                                 line_spacing: int = 5,
@@ -280,7 +286,7 @@ def write_lines_on_rect_overlay(img: NDArray,
         cv2.putText(img, text_line, (line_x1, line_y2), font_face, font_scale,
                     font_color, thickness, lineType=line_type)
 
-def anchor_text(img: NDArray, text: str,
+def anchor_text(img: NDArray[uint8], text: str,
                 *, anchor: PixelPosition,
                 which: Corner,
                 color: ColorTuple,
@@ -299,7 +305,7 @@ def anchor_text(img: NDArray, text: str,
                 color=color, fontFace=font_face, fontScale=font_scale,
                 thickness=thickness, lineType=line_type)
 
-def anchor_line_with_bg(img: NDArray,
+def anchor_line_with_bg(img: NDArray[uint8],
                         text: str, *,
                         anchor: PixelPosition,
                         which: Corner,
@@ -325,7 +331,7 @@ def anchor_line_with_bg(img: NDArray,
         thickness=thickness, line_type=line_type
     )
 
-def anchor_lines_with_bg(img: NDArray,
+def anchor_lines_with_bg(img: NDArray[uint8],
                          text_lines: List[str], *,
                          line_spacing: int = 5,
                          anchor: PixelPosition,
@@ -352,7 +358,7 @@ def anchor_lines_with_bg(img: NDArray,
         thickness=thickness, line_type=line_type
     )
 
-def anchor_lines_on_rect_overlay(img: NDArray,
+def anchor_lines_on_rect_overlay(img: NDArray[uint8],
                                  text_lines: List[str], *,
                                  line_spacing: int = 5,
                                  anchor: PixelPosition,

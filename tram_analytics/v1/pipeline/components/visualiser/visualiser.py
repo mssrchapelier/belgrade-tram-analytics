@@ -1,54 +1,40 @@
-from typing import Tuple, List, NamedTuple, Dict, Set, TypeAlias
+from typing import Tuple, List, NamedTuple, Dict, Set, TypeAlias, Iterator
+from itertools import pairwise
+from datetime import datetime
 
-from numpy import uint8
+import numpy as np
+from numpy import uint8, float64, int64
 from numpy.typing import NDArray
+import cv2
 
-from archive.v1.src.misc.visualizer_v0 import BboxColours, CLASS_COLOURS, to_px, PixelPoint
-from archive.v1.src.misc.visualizer_v0 import _draw_track, _draw_track_state
-from archive.v1.src.v_0_2_0.pipeline.components.analytics.scene_geometry.scene_geometry import (
-    SceneGeometryConfig, RailCorridorConfig
-)
-from archive.v1.src.v_0_2_0.pipeline.components.visualizer_input_builder import TrackState as LegacyTrackState
-from archive.v1.src.v_0_2_0.visualizer.visualizer import (
-    VisualizerV2, PROXY_POINT_SIZE, PROXY_POINT_COLOR, PROXY_POINT_THICKNESS, LINE_TYPE
-)
-from common.utils.custom_types import ColorTuple, PlanarPosition
+from common.utils.custom_types import ColorTuple, PlanarPosition, PixelPosition
 from common.utils.img.cv2.pretty_put_text import anchor_line_with_bg
-from tram_analytics.v1.models.common_types import VehicleType
-from tram_analytics.v1.models.common_types import get_speed_unit_str, BoundingBox, convert_speed
+from common.utils.img.cv2.drawing import draw_cross, to_px, dashed_line, dashed_rectangle
+from common.utils.random.choose_unique_forever import choose_unique_forever
+from tram_analytics.v1.models.common_types import VehicleType, get_speed_unit_str, BoundingBox, convert_speed
 from tram_analytics.v1.models.components.frame_ingestion import Frame
 from tram_analytics.v1.models.components.tracking import TrackState, TrackHistory
 from tram_analytics.v1.models.components.vehicle_info import (
     VehicleInfo, TramRefPoints, CarRefPoints, PositionContainer
 )
-from tram_analytics.v1.pipeline.components.vehicle_info.zones.zones_config import ZonesConfig
-from tram_analytics.v1.pipeline.components.visualiser.config.visualiser_config import VisualiserConfig
+from tram_analytics.v1.pipeline.components.vehicle_info.zones.zones_config import ZonesConfig, RailTrackCoordsConfig
 from tram_analytics.v1.pipeline.components.visualiser.config.colour_palette import (
-    TrackColourPalette, TrackColourPaletteItem
+    TrackLineMarkerColorPalette, TrackColourPalette, TrackColourPaletteItem, LineColorPaletteItem
 )
-from tram_analytics.v1.pipeline.components.visualiser.config.colour_palette import TrackLineMarkerColorPalette
 from tram_analytics.v1.pipeline.components.visualiser.config.visualiser_config import (
-    SpeedConfig, ColorlessTextboxConfig
+    SpeedConfig, ColorlessTextboxConfig, SingleROIVisualisationConfig, FrameOverlayConfig,
+    FrameOverlayTextboxConfig, TrackConfig, TrackStateConfig, TrackStateLineAppearanceConfig,
+    VisualiserConfig, DashedLineConfig, ClassIDConfig, TrackIDConfig
+)
+from tram_analytics.v1.pipeline.components.visualiser.settings import (
+    PROXY_POINT_COLOR, PROXY_POINT_SIZE, PROXY_POINT_THICKNESS, LINE_TYPE, BboxColours, CLASS_COLOURS
+)
+from tram_analytics.v1.pipeline.components.visualiser.visualiser_utils import (
+    bgr_render_as_grey, RailTrackNumpy, draw_rail_track
 )
 
 # detector id -> coords
 ROIMap: TypeAlias = Dict[str, List[PlanarPosition]]
-
-from common.utils.img.cv2.drawing import draw_cross
-
-def _zones_config_to_scene_geometry_config(zones_cfg: ZonesConfig) -> SceneGeometryConfig:
-    """
-    Extracts track information from a `ZonesConfig` and transforms to an older model.
-    """
-    rail_corridors: List[RailCorridorConfig] = [
-        RailCorridorConfig(
-            corridor_id=track_config.zone_numerical_id,
-            polygon=track_config.coords.polygon,
-            centerline=track_config.coords.centreline
-        )
-        for track_config in zones_cfg.tracks.zones
-    ]
-    return SceneGeometryConfig(rail_corridors=rail_corridors)
 
 class VehicleStateDrawingData(NamedTuple):
     """
@@ -115,7 +101,7 @@ def _draw_vehicle_speed(
     formatted: str = f"{value_text[:num_digits]: >{num_digits}} {unit_str}"
     textbox_config: ColorlessTextboxConfig = config.render.textbox
     # position: inside bbox, top left corner
-    anchor: PixelPoint = to_px((px_bbox.x1, px_bbox.y1))
+    anchor: PixelPosition = to_px((px_bbox.x1, px_bbox.y1))
     anchor_line_with_bg(img, formatted,
                         anchor=anchor,
                         which="tl",
@@ -128,9 +114,155 @@ def _draw_vehicle_speed(
                         thickness=textbox_config.thickness,
                         line_type=LINE_TYPE)
 
-class Visualiser(VisualizerV2):
+def _get_track_line_marker_palette_item(palette: TrackLineMarkerColorPalette,
+                                        *, is_confirmed: bool, is_matched: bool) -> LineColorPaletteItem:
+    if is_confirmed:
+        if is_matched:
+            return palette.confirmed_matched
+        return palette.confirmed_unmatched
+    else:
+        if is_matched:
+            return palette.unconfirmed_matched
+        return palette.unconfirmed_unmatched
 
-    # TODO: move implementation from VisualizerV2 here, adapt to use new DTOs, remove VisualizerV2
+
+def _get_track_line_color(palette: TrackLineMarkerColorPalette,
+                          *, is_confirmed: bool, is_matched: bool) -> ColorTuple:
+    palette_item: LineColorPaletteItem = _get_track_line_marker_palette_item(
+        palette, is_confirmed=is_confirmed, is_matched=is_matched
+    )
+    return palette_item.line
+
+
+def _get_track_marker_color(palette: TrackLineMarkerColorPalette,
+                            *, is_confirmed: bool, is_matched: bool) -> ColorTuple:
+    palette_item: LineColorPaletteItem = _get_track_line_marker_palette_item(
+        palette, is_confirmed=is_confirmed, is_matched=is_matched
+    )
+    return palette_item.marker
+
+
+def _draw_track_segment(img: NDArray[uint8], start: PixelPosition, end: PixelPosition,
+                        *, color: ColorTuple, thickness: int):
+    cv2.line(img=img, pt1=start, pt2=end, color=color,
+             thickness=thickness, lineType=LINE_TYPE)
+
+
+def _draw_marker(img: NDArray[uint8], center: PixelPosition,
+                 *, marker_size: int, color: ColorTuple):
+    if marker_size <= 0 or marker_size % 2 == 0:
+        raise ValueError(f"marker_size must be an odd positive integer, received: {marker_size}")
+
+    center_x, center_y = center # type: int, int
+    half_size: int = marker_size // 2
+    x1: int = center_x - half_size
+    x2: int = center_x + half_size
+    y1: int = center_y - half_size
+    y2: int = center_y + half_size
+    cv2.rectangle(img=img, pt1=(x1, y1), pt2=(x2, y2), color=color, thickness=-1)
+
+def _get_dashed_line_config(parent_config: TrackStateLineAppearanceConfig,
+                            *, is_confirmed: bool, is_matched: bool) -> DashedLineConfig:
+    if not is_confirmed and is_matched:
+        return parent_config.unconfirmed_matched
+    elif not is_confirmed and not is_matched:
+        return parent_config.unconfirmed_unmatched
+    elif is_confirmed and not is_matched:
+        return parent_config.confirmed_unmatched
+    else:
+        raise ValueError(
+            "Can't return dash config: both is_confirmed and is_matched are False (corresponds to a solid line)"
+        )
+
+def _draw_solid_bbox(img: NDArray[uint8], bbox: BoundingBox, *, color: ColorTuple, thickness: int):
+    pt1: PixelPosition = to_px((bbox.x1, bbox.y1))
+    pt2: PixelPosition = to_px((bbox.x2, bbox.y2))
+    cv2.rectangle(img=img, pt1=pt1, pt2=pt2,
+                  color=color, thickness=thickness, lineType=LINE_TYPE)
+
+
+def _draw_dashed_bbox(img: NDArray[uint8], bbox: BoundingBox,
+                      *, color: ColorTuple, thickness: int,
+                      dash_config: DashedLineConfig):
+    pt1: PixelPosition = to_px((bbox.x1, bbox.y1))
+    pt2: PixelPosition = to_px((bbox.x2, bbox.y2))
+    dashed_rectangle(img, pt1, pt2,
+                     dash=dash_config.dash_length,
+                     gap=dash_config.gap_length,
+                     color=color, thickness=thickness,
+                     lineType=LINE_TYPE)
+
+
+def _draw_track_state_bbox(img: NDArray[uint8],
+                           px_bbox: BoundingBox,
+                           *,
+                           color: ColorTuple,
+                           is_confirmed: bool, is_matched: bool,
+                           border_config: TrackStateLineAppearanceConfig,
+                           ):
+    # if not is_confirmed and not is_matched:
+    #     raise ValueError("Invalid track state: at least one of is_confirmed, is_matched must be True")
+
+    bbox_thickness: int = border_config.thickness
+
+    if is_confirmed and is_matched:
+        # track confirmed and object detected
+        _draw_solid_bbox(img, px_bbox, color=color, thickness=bbox_thickness)
+    else:
+        dash_config: DashedLineConfig = _get_dashed_line_config(
+            border_config, is_confirmed=is_confirmed, is_matched=is_matched
+        )
+        _draw_dashed_bbox(img, px_bbox, color=color, thickness=bbox_thickness,
+                          dash_config=dash_config)
+
+
+def _draw_vehicle_type_on_bbox(img: NDArray[uint8], vehicle_type: VehicleType, px_bbox: BoundingBox,
+                               *, config: ClassIDConfig,
+                               classid_bg_color: ColorTuple,
+                               classid_text_color: ColorTuple):
+    text_len: int = config.display_length
+    # truncate; pad with spaces if shorter; align left
+    class_id_text: str = vehicle_type.upper()
+    text: str = f"{class_id_text[:text_len]: <{text_len}}"
+    textbox_config: ColorlessTextboxConfig = config.textbox
+    # position: outside bbox, anchored to: top left corner, by: bottom left corner
+    anchor: PixelPosition = to_px((px_bbox.x1, px_bbox.y1))
+    anchor_line_with_bg(img, text,
+                        anchor=anchor,
+                        which="bl",
+                        offset=textbox_config.offset,
+                        padding=textbox_config.padding,
+                        bg_color=classid_bg_color,
+                        font_color=classid_text_color,
+                        font_face=textbox_config.font_face,
+                        font_scale=textbox_config.font_scale,
+                        thickness=textbox_config.thickness,
+                        line_type=LINE_TYPE)
+
+
+def _draw_track_id_on_bbox(img: NDArray[uint8], track_id: str, px_bbox: BoundingBox,
+                           *, config: TrackIDConfig,
+                           trackid_bg_color: ColorTuple,
+                           trackid_text_color: ColorTuple):
+    text_len: int = config.display_length
+    # truncate; pad with spaces if shorter; align right
+    text: str = f"{track_id[:text_len]: >{text_len}}"
+    textbox_config: ColorlessTextboxConfig = config.textbox
+    # position: outside bbox, top right corner, anchored by own bottom-right corner
+    anchor: PixelPosition = to_px((px_bbox.x2, px_bbox.y1))
+    anchor_line_with_bg(img, text,
+                        anchor=anchor,
+                        which="br",
+                        offset=textbox_config.offset,
+                        padding=textbox_config.padding,
+                        bg_color=trackid_bg_color,
+                        font_color=trackid_text_color,
+                        font_face=textbox_config.font_face,
+                        font_scale=textbox_config.font_scale,
+                        thickness=textbox_config.thickness,
+                        line_type=LINE_TYPE)
+
+class Visualiser:
 
     def __init__(
             self, config: VisualiserConfig,
@@ -139,16 +271,110 @@ class Visualiser(VisualizerV2):
             roi_map: ROIMap | None = None,
             zones_config: ZonesConfig | None = None
     ) -> None:
-        scene_geometry_config: SceneGeometryConfig | None = (
-            _zones_config_to_scene_geometry_config(zones_config)
-            if zones_config is not None
+
+        self._config: VisualiserConfig = config
+
+        self._src_size: Tuple[int, int] = src_img_size
+        self._dest_size, self._scale = self._get_dest_size_and_scale(
+            src_img_size, self._config.out_height
+        )  # type: Tuple[int, int], float
+
+        self._track_color_palette: TrackColourPalette = track_color_config
+
+        # Samples COLOR_PALETTE without replacement until all colours have been exhausted.
+        # After that, samples anew.
+        # This ensures that there are as few repetitions of colours as possible.
+        self._track_colour_iter: Iterator[TrackColourPaletteItem] = choose_unique_forever(
+            self._track_color_palette.root
+        )
+
+        # detector_id -> DetectorROIVisualizationConfig
+        self._roi_configs: Dict[str, SingleROIVisualisationConfig] | None = (
+            {config.detector_id: config for config in self._config.roi.root}
+            if self._config.roi is not None
             else None
         )
-        super().__init__(config,
-                         track_color_config,
-                         src_img_size=src_img_size,
-                         roi_map=roi_map,
-                         scene_geometry_config=scene_geometry_config)
+        if self._roi_configs is None and roi_map is not None:
+            raise ValueError("Cannot pass roi_map with empty roi in VisualiserConfig")
+        # detector ID -> ROI vertices in RESIZED image coordinates
+        self._roi_coords_resized: ROIMap | None = self._get_resized_roi_map(roi_map)
+
+        self._rail_tracks: List[RailTrackNumpy] = [
+            self._build_rail_track_numpy(track_config.coords)
+            for track_config in zones_config.tracks.zones
+        ] if zones_config is not None else []
+
+        # track_id -> TrackColorPaletteItem
+        self._track_colour_map: Dict[str, TrackColourPaletteItem] = dict()
+
+    @staticmethod
+    def _get_dest_size_and_scale(
+            src_size: Tuple[int, int], out_height: int | None
+    ) -> Tuple[Tuple[int, int], float]:
+        """
+        Calculate the size for the canvas and the scale to apply to all source coordinates.
+        """
+        scale: float = out_height / src_size[1] if out_height is not None else 1.0
+        dest_w: int = round(src_size[0] * scale)
+        dest_h: int = round(src_size[1] * scale)
+        dest_size: Tuple[int, int] = (dest_w, dest_h)
+        return dest_size, scale
+
+    def _resize_roi(self, roi: List[PlanarPosition]) -> List[PlanarPosition]:
+        # resize to new canvas size and round to integers
+        new_coords: List[PlanarPosition] = [
+            (x_old * self._scale, y_old * self._scale)
+            for x_old, y_old in roi
+        ]
+        return new_coords
+
+    def _get_resized_roi_map(self, roi_map_src: ROIMap | None) -> ROIMap | None:
+        if roi_map_src is None:
+            return None
+        return {
+            detector_id: self._resize_roi(old_roi)
+            for detector_id, old_roi in roi_map_src.items()
+        }
+
+    def _build_rail_track_numpy(self, config: RailTrackCoordsConfig) -> RailTrackNumpy:
+        if self._scale is None:
+            raise RuntimeError("Called _build_rail_track_numpy with _scale set to None")
+        polygon: NDArray[float64] = (
+            np.array(config.polygon, dtype=float64) * self._scale
+        )
+        polygon_int: NDArray[int64] = polygon.astype(int64)
+        centreline: NDArray[float64] = (
+            np.array(config.centreline, dtype=float64) * self._scale
+        )
+        centreline_int: NDArray[int64] = centreline.astype(int64)
+        corridor: RailTrackNumpy = RailTrackNumpy(
+            polygon=polygon_int, centreline=centreline_int
+        )
+        return corridor
+
+    def _get_colours_for_track(self, track_id: str) -> TrackColourPaletteItem:
+        if track_id in self._track_colour_map:
+            return self._track_colour_map[track_id]
+        # if not in the colour map, generate a new mapping
+        new_colour: TrackColourPaletteItem = next(self._track_colour_iter)
+        self._track_colour_map[track_id] = new_colour
+        return new_colour
+
+    def _resize_canvas(self, canvas: NDArray[uint8]) -> NDArray[uint8]:
+        resized: NDArray[uint8] = cv2.resize(
+            src=canvas, dsize=None, fx=self._scale, fy=self._scale
+        ).astype(uint8, copy=False)
+        return resized
+
+    def _transform_canvas(self, canvas: NDArray[uint8]) -> NDArray[uint8]:
+        # to greyscale, upsample
+        transformed: NDArray[uint8] = canvas
+        if self._config.to_greyscale:
+            # to greyscale
+            transformed = bgr_render_as_grey(canvas)
+        # upsample / downsample
+        transformed = self._resize_canvas(transformed)
+        return transformed
 
     # --- scaling to canvas ---
 
@@ -170,21 +396,45 @@ class Visualiser(VisualizerV2):
     # Currently used because the base `VisualizerV2` class uses the old DTO format.
     # To be removed once all implementation is moved from `VisualizerV2` here.
 
-    @staticmethod
-    def _track_state_to_legacy(state: TrackState) -> LegacyTrackState:
-        """
-        Helper to convert to a legacy DTO used by imported functions.
-        """
-        return LegacyTrackState(is_matched=state.is_matched,
-                                is_confirmed=state.is_confirmed_track,
-                                bbox=state.bbox)
-
-    def _scale_legacy_track_state(self, state: LegacyTrackState) -> LegacyTrackState:
-        return LegacyTrackState(is_matched=state.is_matched,
-                                is_confirmed=state.is_confirmed,
-                                bbox=self._scale_bbox(state.bbox))
-
     # --- drawing ---
+
+    @staticmethod
+    def _draw_single_roi(img: NDArray[uint8], roi: List[PlanarPosition],
+                         config: SingleROIVisualisationConfig) -> None:
+        if len(roi) == 0:
+            return
+        vertex_pairs: List[Tuple[PlanarPosition, PlanarPosition]] = list(pairwise(roi))
+        # also connect the last vertex with the first one
+        vertex_pairs.append((roi[-1], roi[0]))
+        for start, end in vertex_pairs:  # type: PlanarPosition, PlanarPosition
+            dashed_line(img, to_px(start), to_px(end),
+                        dash=config.dash_length, gap=config.gap_length,
+                        color=config.color, thickness=config.thickness,
+                        lineType=LINE_TYPE)
+
+    def _draw_all_roi(self, img: NDArray[uint8]) -> None:
+        if self._roi_configs is None or self._roi_coords_resized is None:
+            return
+        detector_ids: List[str] = list(self._roi_coords_resized.keys())
+        # ensure the order of drawing: in the ascending alphabetical order of detector IDs
+        detector_ids.sort()
+        for detector_id in detector_ids: # type: str
+            if detector_id not in self._roi_configs:
+                raise ValueError(
+                    f"Detector ID {detector_id} not present in the visualiser's configuration. "
+                    + "IDs present in the configuration: {}".format(
+                        ", ".join(sorted(list(self._roi_configs.keys())))
+                    ))
+            config: SingleROIVisualisationConfig = self._roi_configs[detector_id]
+            if detector_id != config.detector_id:
+                raise RuntimeError(f"Inconsistent _roi_configs in Visualizer: "
+                                   f"detector_id as map key: {detector_id}, as config field: {config.detector_id}")
+            roi: List[PlanarPosition] = self._roi_coords_resized[detector_id]
+            self._draw_single_roi(img, roi, config)
+
+    def _draw_rail_tracks(self, img: NDArray[uint8]) -> None:
+        for rail_track in self._rail_tracks: # type: RailTrackNumpy
+            draw_rail_track(img, rail_track)
 
     def _draw_track(self, img: NDArray[uint8], track_history: TrackHistory) -> None:
         """
@@ -198,20 +448,59 @@ class Visualiser(VisualizerV2):
         """
         # the colour configuration for this track, for lines and markers
         color_config: TrackLineMarkerColorPalette = (
-            self._get_colors_for_track(track_history.track_id).lines_markers
+            self._get_colours_for_track(track_history.track_id).lines_markers
         )
-        # convert to legacy objects because `_draw_track` expects them
-        # + also scale to canvas
-        history_legacyformat: List[LegacyTrackState] = [
-            self._scale_legacy_track_state(
-                self._track_state_to_legacy(track_state)
-            )
-            for track_state in track_history.history
+        states: List[TrackState] = track_history.history
+        config: TrackConfig = self._config.track
+
+        # TODO: refactor this (split into different functions), but ensure that
+        #   markers are drawn on top of the line segments
+        #   (i. e. first draw all segments, then all markers)
+
+        line_thickness: int = config.line_thickness
+
+        # scale to canvas
+        bboxes_scaled: List[BoundingBox] = [self._scale_bbox(state.bbox) for state in states]
+        # centroids of all states, as pixel coordinates (i. e. rounded to the nearest integer)
+        centroids: List[PixelPosition] = [to_px(bbox.centroid)
+                                          for bbox in bboxes_scaled]
+        marker_colors: List[ColorTuple] = [
+            _get_track_marker_color(color_config,
+                                    is_confirmed=state.is_confirmed_track,
+                                    is_matched=state.is_matched)
+            for state in states
         ]
-        _draw_track(img,
-                    history_legacyformat,
-                    config=self.config.track,
-                    color_config=color_config)
+        # [ (centroid_1, centroid_2), (centroid_2, centroid_3), ... ]
+        segment_termini_tuples: List[Tuple[PixelPosition, PixelPosition]] = [
+            (start, end)
+            for start, end in pairwise(centroids)
+        ]
+        # NOTE: extraction of is_confirmed, is_matched is based on both the START and END points of each segment.
+        # The combined attribute is True only if it is True for both the start and the end points of the segment.
+        segments_confirmed_flags: List[bool] = [
+            start_state.is_confirmed_track and end_state.is_confirmed_track
+            for start_state, end_state in pairwise(states)
+        ]
+        segments_matched_flags: List[bool] = [
+            start_state.is_matched and end_state.is_matched
+            for start_state, end_state in pairwise(states)
+        ]
+        line_colors: List[ColorTuple] = [
+            _get_track_line_color(color_config,
+                                  is_confirmed=is_confirmed, is_matched=is_matched)
+            for is_confirmed, is_matched in zip(segments_confirmed_flags, segments_matched_flags)
+        ]
+
+        # draw track lines, then markers on top of them
+        # ---  draw track lines
+        for start_end_tuple, line_color in zip(segment_termini_tuples,
+                                               line_colors):  # type: Tuple[PixelPosition, PixelPosition], ColorTuple
+            start, end = start_end_tuple  # type: PixelPosition, PixelPosition
+            _draw_track_segment(img, start, end, color=line_color, thickness=line_thickness)
+        # ---  draw markers
+        for centroid, marker_color in zip(centroids, marker_colors):  # type: PixelPosition, ColorTuple
+            _draw_marker(img=img, center=centroid,
+                         marker_size=config.marker_size, color=marker_color)
 
     def _draw_cross_at_point(self, img: NDArray[uint8], pt_unscaled: PlanarPosition) -> None:
         """
@@ -257,7 +546,7 @@ class Visualiser(VisualizerV2):
                 refpoints.vehicle_centreline.centre_in_world_plane,
                 refpoints.vehicle_centreline.end
             ]
-            for container in containers_to_draw: # type: PositionContainer
+            for container in containers_to_draw: # type: PositionContainer | None
                 if container is not None:
                     self._draw_cross_at_point(img, container.image)
 
@@ -270,11 +559,35 @@ class Visualiser(VisualizerV2):
             case _:
                 raise ValueError(f"Unknown vehicle type: {vehicle_info.vehicle_type}")
 
+    def _draw_track_state(self, img: NDArray[uint8], state: TrackState,
+                          *, track_id: str, vehicle_type: VehicleType,
+                          bbox_colors: BboxColours,
+                          trackid_bg_color: ColorTuple,
+                          trackid_text_color: ColorTuple,
+                          config: TrackStateConfig):
+        border_color: ColorTuple = bbox_colors.border_color
+        bbox_scaled: BoundingBox = self._scale_bbox(state.bbox)
+        # draw the bounding box
+        _draw_track_state_bbox(img, bbox_scaled,
+                               is_confirmed=state.is_confirmed_track,
+                               is_matched=state.is_matched,
+                               border_config=config.bbox_border, color=border_color)
+        # draw the class ID
+        _draw_vehicle_type_on_bbox(img, vehicle_type, bbox_scaled,
+                                   config=config.bbox_text.class_id,
+                                   classid_bg_color=bbox_colors.classid_bg_color,
+                                   classid_text_color=bbox_colors.classid_text_color)
+        # draw the track ID
+        _draw_track_id_on_bbox(img, track_id, bbox_scaled,
+                               config=config.bbox_text.track_id,
+                               trackid_bg_color=trackid_bg_color,
+                               trackid_text_color=trackid_text_color)
+
     def _draw_vehicle_state(
             self, img: NDArray[uint8], state_data: VehicleStateDrawingData
     ) -> None:
         # colours for the track id annotation
-        colours_for_track: TrackColourPaletteItem = self._get_colors_for_track(
+        colours_for_track: TrackColourPaletteItem = self._get_colours_for_track(
             state_data.vehicle_id
         )
         # colours for the bbox border and class id annotation
@@ -282,18 +595,14 @@ class Visualiser(VisualizerV2):
             state_data.track_state.vehicle_type
         ]
 
-        # conversions to legacy format
-        state_legacyformat: LegacyTrackState = self._track_state_to_legacy(state_data.track_state)
-        # scale to canvas
-        state_legacy_scaled: LegacyTrackState = self._scale_legacy_track_state(state_legacyformat)
         # draw the bounding box, class ID, track ID
-        _draw_track_state(img, state_legacy_scaled,
-                          track_id=state_data.vehicle_id,
-                          vehicle_type=state_data.track_state.vehicle_type,
-                          trackid_bg_color=colours_for_track.trackid_bg_color,
-                          trackid_text_color=colours_for_track.trackid_text_color,
-                          bbox_colors=bbox_colours,
-                          config=self.config.track_state)
+        self._draw_track_state(img, state_data.track_state,
+                               track_id=state_data.vehicle_id,
+                               vehicle_type=state_data.track_state.vehicle_type,
+                               trackid_bg_color=colours_for_track.trackid_bg_color,
+                               trackid_text_color=colours_for_track.trackid_text_color,
+                               bbox_colors=bbox_colours,
+                               config=self._config.track_state)
         # draw reference points
         self._draw_reference_points(img, state_data.vehicle_info)
         # draw speeds
@@ -301,9 +610,31 @@ class Visualiser(VisualizerV2):
         _draw_vehicle_speed(img,
                             state_data.vehicle_info.speeds.smoothed,
                             px_bbox=self._scale_bbox(state_data.track_state.bbox),
-                            config=self.config.speed,
+                            config=self._config.speed,
                             bg_color=colours_for_track.trackid_bg_color,
                             text_color=colours_for_track.trackid_text_color)
+
+    def _draw_frame_info(self, img: NDArray[uint8], *, frame_id: str, timestamp: datetime):
+        # overlay: black background in the top left corner of the frame
+        # content: "DD.MM.YYYY HH:MM:SS.SSS (GMT) | frame_id[:6]"
+        config: FrameOverlayConfig = self._config.frame_overlay
+        f_id_len: int = config.frame_id_display_length
+        # truncate frame_id; pad with spaces if shorter
+        frame_id_text: str = f"{frame_id[:f_id_len]: <{f_id_len}}"
+        ts_text: str = timestamp.strftime(config.timestamp_format)
+        text: str = f"{frame_id_text} | {ts_text}"
+        text_config: FrameOverlayTextboxConfig = config.textbox
+        anchor_line_with_bg(img, text,
+                            anchor=text_config.anchor,
+                            which=text_config.which_corner,
+                            offset=text_config.offset,
+                            padding=text_config.padding,
+                            bg_color=text_config.bg_color,
+                            font_color=text_config.font_color,
+                            font_face=text_config.font_face,
+                            font_scale=text_config.font_scale,
+                            thickness=text_config.thickness,
+                            line_type=LINE_TYPE)
 
     def process_frame(self,
                       *, frame: Frame,
@@ -315,7 +646,7 @@ class Visualiser(VisualizerV2):
         # draw the regions of interest for the detectors
         self._draw_all_roi(canvas)
         # draw rail corridors
-        self._draw_rail_corridors(canvas)
+        self._draw_rail_tracks(canvas)
         # TODO: implement drawing platforms, intrusion zones from vehicle_infos
 
         # last track state in each track history
@@ -344,4 +675,3 @@ class Visualiser(VisualizerV2):
                               timestamp=frame.timestamp)
 
         return canvas
-

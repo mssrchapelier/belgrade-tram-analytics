@@ -38,3 +38,11 @@ class PipelineArtefacts(BaseModel):
     scene_events: SceneEventsWrapper
     live_state: LiveAnalyticsState
 
+# Intermediate DTO up to and including derived vehicle info
+class MainPipelineArtefacts(BaseModel):
+    frame_metadata: FrameMetadata
+    track_states: List[TrackState]
+    vehicles_info: List[VehicleInfo]
+
+    detection: List[Detection]
+    det_to_track_state: List[DetectionToTrackState]

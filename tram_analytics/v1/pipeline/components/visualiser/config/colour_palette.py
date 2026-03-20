@@ -46,7 +46,7 @@ def load_palette_from_dir(configs_dir: str) -> TrackColourPalette:
     The order of items in the returned list corresponds
     to the ascending order of the indices `N` in the filenames.
     """
-    name_pattern: Pattern = re.compile(r"^colors_(?P<idx>\d+)\.yaml$")
+    name_pattern: Pattern[str] = re.compile(r"^colors_(?P<idx>\d+)\.yaml$")
 
     # list files in the directory
     dir_as_path: Path = Path(configs_dir)
@@ -58,7 +58,7 @@ def load_palette_from_dir(configs_dir: str) -> TrackColourPalette:
     # read indices from paths
     for filepath in filepaths: # type: Path
         name: str = filepath.name
-        match: Match = name_pattern.match(name)
+        match: Match[str] | None = name_pattern.match(name)
         if match is None:
             raise ValueError(f"File names must be of form: colors_N.yaml, got: {name}")
         idx: int = int(match.group("idx"))
@@ -66,16 +66,7 @@ def load_palette_from_dir(configs_dir: str) -> TrackColourPalette:
     # sort the list by index
     idx_path_tuples.sort(key=lambda t: t[0])
     # build palette items
-    palette_items: List[TrackColourPaletteItem] = []
-    for idx, filepath in idx_path_tuples: # type: int, Path
-        try:
-            item: TrackColourPaletteItem = parse_yaml_file_as(TrackColourPaletteItem, filepath)
-            palette_items.append(item)
-        except Exception as e:
-            msg: str = f"Exception in file: {str(filepath)}"
-            raise RuntimeError(msg) from e
-
-    palette_items: List[TrackColourPaletteItem] = [
+    palette_items = [
         parse_yaml_file_as(TrackColourPaletteItem, filepath)
         for idx, filepath in idx_path_tuples
     ]

@@ -93,3 +93,8 @@ class BoundingBox(BaseModel):
         center_x: float = self.x1 + self.width / 2
         center_y: float = self.y1 + self.height / 2
         return center_x, center_y
+
+
+class SpeedType(StrEnum):
+    RAW = auto()
+    SMOOTHED = auto()

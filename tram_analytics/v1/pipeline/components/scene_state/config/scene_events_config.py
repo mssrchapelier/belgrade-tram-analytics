@@ -1,6 +1,6 @@
 from pydantic import BaseModel
 
-from archive.v1.src.api_server.models.scene_state_settings import SpeedType
+from tram_analytics.v1.models.common_types import SpeedType
 from tram_analytics.v1.pipeline.components.scene_state.live_state_updater.config.zones_config import ZonesConfig
 
 
