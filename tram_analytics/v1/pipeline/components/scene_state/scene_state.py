@@ -2,7 +2,10 @@
 A wrapper for the events pipeline and the live state updater to be chained together.
 """
 
-from tram_analytics.v1.models.pipeline_artefacts import MainPipelineArtefacts
+from typing import List
+
+from tram_analytics.v1.models.components.frame_ingestion import FrameMetadata
+from tram_analytics.v1.models.components.vehicle_info import VehicleInfo
 from tram_analytics.v1.models.components.scene_state.events.scene_events import EventsContainer
 from tram_analytics.v1.models.components.scene_state.live_state.live_state import LiveAnalyticsState
 from tram_analytics.v1.pipeline.components.scene_state.config.scene_events_config import SceneStateUpdaterConfig
@@ -26,8 +29,12 @@ class SceneStateUpdater:
             camera_id=camera_id, zones_config=config.zones
         )
 
-    def update_and_get_events(self, main_pipeline_artefacts: MainPipelineArtefacts) -> SceneState:
-        events_pipeline_input: EventsInputData = convert_vehicle_info(main_pipeline_artefacts)
+    def update_and_get_events(
+            self, frame_metadata: FrameMetadata, vehicle_infos: List[VehicleInfo]
+    ) -> SceneState:
+        events_pipeline_input: EventsInputData = convert_vehicle_info(
+            frame_metadata, vehicle_infos
+        )
         events: EventsContainer = self._events_pipeline.update_and_get_events(events_pipeline_input)
         live_state: LiveAnalyticsState = self._live_state_updater.update_and_export_state(
             events=events, settings=self._config.scene_events

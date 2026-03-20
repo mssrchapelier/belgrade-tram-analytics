@@ -10,11 +10,11 @@ from tqdm import tqdm
 from common.settings.constants import ASSETS_DIR
 from common.utils.time_utils import get_datetime_utc
 from common.utils.tqdm_utils import ManualTqdm
+from tram_analytics.v1.models.pipeline_artefacts import PipelineArtefacts
 from tram_analytics.v1.models.components.detection import Detection
 from tram_analytics.v1.models.components.frame_ingestion import FrameMetadata, Frame
 from tram_analytics.v1.models.components.tracking import TrackState, TrackHistory, DetectionToTrackState
 from tram_analytics.v1.models.components.vehicle_info import VehicleInfo
-from tram_analytics.v1.models.pipeline_artefacts import PipelineArtefacts, MainPipelineArtefacts
 from tram_analytics.v1.pipeline.components.detection.detection import DetectionService, build_detection_service
 from tram_analytics.v1.pipeline.components.detection.detection_config import DetectionServiceConfig
 from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.from_file.config import \
@@ -162,15 +162,9 @@ class BasePipeline(ABC):
             states=track_states, frame_ts=frame_metadata.timestamp
         )
 
-        # TODO: refactor SceneState to not need the entire `MainPipelineArtefacts` for input
-        main_artefacts: MainPipelineArtefacts = MainPipelineArtefacts(
-            frame_metadata=frame_metadata,
-            track_states=track_states,
-            vehicles_info=vehicle_infos,
-            detection=dets, det_to_track_state=det_to_track_state
+        scene_state: SceneState = self._scene_state_updater.update_and_get_events(
+            frame_metadata, vehicle_infos
         )
-
-        scene_state: SceneState = self._scene_state_updater.update_and_get_events(main_artefacts)
 
         artefacts_creation_ts: datetime = get_datetime_utc()
 

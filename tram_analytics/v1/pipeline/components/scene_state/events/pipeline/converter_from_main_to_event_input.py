@@ -1,11 +1,15 @@
 from typing import List
 
-from tram_analytics.v1.models.pipeline_artefacts import MainPipelineArtefacts
-from tram_analytics.v1.pipeline.components.scene_state.events.pipeline.events_input import EventsInputData, \
-    VehicleInput, SpeedsInput
+from tram_analytics.v1.models.components.frame_ingestion import FrameMetadata
+from tram_analytics.v1.models.components.vehicle_info import VehicleInfo
+from tram_analytics.v1.pipeline.components.scene_state.events.pipeline.events_input import (
+    EventsInputData, VehicleInput, SpeedsInput
+)
 
 
-def convert_vehicle_info(src_obj: MainPipelineArtefacts) -> EventsInputData:
+def convert_vehicle_info(
+    frame_metadata: FrameMetadata, vehicle_infos: List[VehicleInfo]
+) -> EventsInputData:
     """
     For a given frame, extract data from the output of the main pipeline
     into an object used as input to the events computer.
@@ -17,12 +21,12 @@ def convert_vehicle_info(src_obj: MainPipelineArtefacts) -> EventsInputData:
                      speeds=SpeedsInput(raw_ms=src_vehicle.speeds.raw,
                                         smoothed_ms=src_vehicle.speeds.smoothed),
                      zone_ids=src_vehicle.zone_ids)
-        for src_vehicle in src_obj.vehicles_info
+        for src_vehicle in vehicle_infos
     ]
     dest_obj: EventsInputData = EventsInputData(
-        camera_id=src_obj.frame_metadata.camera_id,
-        frame_id=src_obj.frame_metadata.frame_id,
-        frame_ts=src_obj.frame_metadata.timestamp,
+        camera_id=frame_metadata.camera_id,
+        frame_id=frame_metadata.frame_id,
+        frame_ts=frame_metadata.timestamp,
         vehicles=dest_vehicles
     )
     return dest_obj
