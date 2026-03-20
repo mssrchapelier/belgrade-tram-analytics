@@ -1,0 +1,20 @@
+services:
+  tram_analytics:
+    # run init process for proper signal forwarding
+    init: true
+    build:
+      # build from the repository root
+      context: .
+      dockerfile: ./Dockerfile
+    image: belgrade-tram-analytics:0.1.0
+    container_name: belgrade-tram-analytics
+    env_file:
+      - ./docker.env
+    ports:
+      # map container ports to host ports, to access the servers on the host
+      - "8081:8081" # pipeline server, API
+      - "8091:8091" # dashboard
+    volumes:
+      # a bind mount into ASSETS_DIR,
+      # to provide assets (video file, configs) from which to run the service
+      - ./_assets:/app/assets

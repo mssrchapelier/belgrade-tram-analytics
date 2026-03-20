@@ -1,0 +1,20 @@
+.dockerignore
+Dockerfile
+docker.env
+.gitignore
+mypy.ini
+
+/examples/
+/tests/
+
+__pycache__/
+/.git/
+/.idea/
+/.mypy_cache/
+
+# --- local ---
+.env
+/.venv/
+/.res/
+/_assets/
+/local/
