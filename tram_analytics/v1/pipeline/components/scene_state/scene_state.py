@@ -2,7 +2,7 @@
 A wrapper for the events pipeline and the live state updater to be chained together.
 """
 
-from archive.v1.src.models.models import MainPipelineArtefacts
+from tram_analytics.v1.models.pipeline_artefacts import MainPipelineArtefacts
 from tram_analytics.v1.models.components.scene_state.events.scene_events import EventsContainer
 from tram_analytics.v1.models.components.scene_state.live_state.live_state import LiveAnalyticsState
 from tram_analytics.v1.pipeline.components.scene_state.config.scene_events_config import SceneStateUpdaterConfig

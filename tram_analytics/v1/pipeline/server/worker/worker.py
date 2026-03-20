@@ -3,13 +3,12 @@ from logging import Logger
 from multiprocessing.queues import Queue as QueueType
 from queue import Full as QueueFullException
 from timeit import default_timer
-from typing import Iterator, Tuple, override, TypeAlias, Self
+from typing import Iterator, Tuple, override, TypeAlias, Self, NamedTuple
 
 from numpy import uint8
 from numpy.typing import NDArray
 from pydantic_yaml import parse_yaml_file_as
 
-from archive.v1.src.v_0_1_0.pipeline.pipeline_server import PipelineWorkerTimes, PIPELINE_WORKER_TIMEOUT_PER_JOIN
 from common.settings.constants import LOGGING_SERVER_HOST, LOGGING_SERVER_PORT
 from common.utils.concurrency.mp_utils import ShutdownableProcess, stop_shutdownable
 from common.utils.logging_utils.logging_utils import get_logger_name_for_object, configure_global_logging_to_tcp_socket
@@ -17,6 +16,8 @@ from tram_analytics.v1.models.pipeline_artefacts import PipelineArtefacts
 from tram_analytics.v1.pipeline.pipeline.artefacts_streaming.config import ArtefactsStreamingPipelineConfig
 from tram_analytics.v1.pipeline.server.helpers.packet import PipelinePacket, _build_pipeline_packet
 from tram_analytics.v1.pipeline.server.helpers.pipeline_cache import PipelineCache
+
+PIPELINE_WORKER_TIMEOUT_PER_JOIN: float = 10.0
 
 PipelineQueue: TypeAlias = QueueType[PipelinePacket | None]
 
@@ -126,6 +127,12 @@ class PipelineWorker(ShutdownableProcess):
             level=self._logging_level
         )
         self._run_worker()
+
+
+class PipelineWorkerTimes(NamedTuple):
+    in_pipeline: float
+    packet_creation: float
+    buffer_update: float
 
 
 def _get_pipeline_worker_timing_log_line(frame_id: str, times: PipelineWorkerTimes) -> str:

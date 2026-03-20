@@ -14,7 +14,6 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --no-cache-dir -r requirements.txt
 
 # Copy the files needed
-COPY archive ./archive
 COPY common ./common
 COPY tram_analytics ./tram_analytics
 COPY paths.py ./paths.py

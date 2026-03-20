@@ -4,10 +4,8 @@ from warnings import deprecated
 from pydantic import BaseModel
 
 from tram_analytics.v1.models.common_types import BoundingBox
-from tram_analytics.v1.models.components.detection import Detection
-from tram_analytics.v1.models.components.tracking import DetectionToTrackState, TrackState
+from tram_analytics.v1.models.components.tracking import DetectionToTrackState
 from tram_analytics.v1.models.components.frame_ingestion import FrameMetadata
-from tram_analytics.v1.models.components.vehicle_info import VehicleInfo
 
 
 class FrameWithBytes(FrameMetadata):
@@ -83,12 +81,3 @@ class TrackAssignment(BaseModel):
     track_id: str | None
 
     detection_id: str
-
-# up to and including derived vehicle info
-class MainPipelineArtefacts(BaseModel):
-    frame_metadata: FrameMetadata
-    track_states: List[TrackState]
-    vehicles_info: List[VehicleInfo]
-
-    detection: List[Detection]
-    det_to_track_state: List[DetectionToTrackState]

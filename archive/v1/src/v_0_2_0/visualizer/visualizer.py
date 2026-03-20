@@ -3,17 +3,14 @@ __version__ = "0.2.0"
 from typing import Dict, List, Tuple, Any
 from itertools import pairwise
 from operator import itemgetter
-from dataclasses import dataclass
 
 import numpy as np
 from numpy.typing import NDArray
-import cv2
 
 from archive.v1.src.v_0_2_0.pipeline.components.analytics.scene_geometry.scene_geometry import SceneGeometryConfig
 from archive.v1.src.v_0_2_0.pipeline.components.visualizer_input_builder import TrackState, TrackWithHistory
 from archive.v1.src.misc.visualizer_v0 import (
-    Visualizer, ROIMap_Float, BboxColours, CLASS_COLOURS,
-    _draw_track_state, LINE_TYPE, to_px
+    Visualizer, ROIMap_Float, _draw_track_state
 )
 from archive.v1.src.v_0_2_0.pipeline.components.visualizer_input_builder_v2 import (
     EnhancedTrackState, EnhancedTrackWithHistory, TramEnhancedTrackState
@@ -28,52 +25,11 @@ from tram_analytics.v1.models.common_types import BoundingBox
 from tram_analytics.v1.models.components.frame_ingestion import Frame
 from tram_analytics.v1.pipeline.components.visualiser.config.visualiser_config import TrackStateConfig
 from common.utils.custom_types import ColorTuple, PlanarPosition, PixelPosition
-from common.utils.img.cv2.drawing import draw_cross, dashed_line
-
-PROXY_POINT_COLOR: ColorTuple = (255, 255, 0)
-PROXY_POINT_SIZE: int = 15
-PROXY_POINT_THICKNESS: int = 1
-
-CORRIDOR_DASH_LENGTH: int = 10
-CORRIDOR_GAP_LENGTH: int = 15
-CORRIDOR_COLOR: ColorTuple = (121, 253, 255)
-CORRIDOR_THICKNESS: int = 1
-
-@dataclass
-class RailCorridorNumpy:
-    # shape: (num_vertices, 2), dtype: int32
-    # polygon: ndarray[Tuple[int, Literal[2]], np.int32]
-    polygon: NDArray[np.int32]
-    # shape: (num_vertices, 2), dtype: int32
-    # centerline: ndarray[Tuple[int, Literal[2]], np.int32]
-    centerline: NDArray[np.int32]
-
-def _draw_corridor(img: NDArray, corridor: RailCorridorNumpy):
-    # border
-    border_vertices: List[PixelPosition] = [
-        (vertex_row[0], vertex_row[1])
-        for vertex_row in corridor.polygon.tolist()
-    ]
-    # [ (xy1, xy2), (xy2, xy3), ... ]
-    border_vertex_pairs: List[Tuple[PixelPosition, PixelPosition]] = list(pairwise(border_vertices))
-    # also connect the last vertex with the first one
-    border_vertex_pairs.append(
-        (border_vertices[-1], border_vertices[0])
-    )
-    for start, end in border_vertex_pairs: # type: PixelPosition, PixelPosition
-        dashed_line(img, start, end,
-                    dash=CORRIDOR_DASH_LENGTH, gap=CORRIDOR_GAP_LENGTH,
-                    color=CORRIDOR_COLOR, thickness=CORRIDOR_THICKNESS,
-                    lineType=LINE_TYPE)
-    # centre line
-    centerline_pts: List[PixelPosition] = [
-        (pt_row[0], pt_row[1])
-        for pt_row in corridor.centerline.tolist()
-    ]
-    for start, end in pairwise(centerline_pts): # type: PixelPosition, PixelPosition
-        cv2.line(img=img, pt1=start, pt2=end,
-                 color=CORRIDOR_COLOR, thickness=CORRIDOR_THICKNESS,
-                 lineType=LINE_TYPE)
+from common.utils.img.cv2.drawing import draw_cross, dashed_line, to_px
+from tram_analytics.v1.pipeline.components.visualiser.settings import PROXY_POINT_COLOR, PROXY_POINT_SIZE, \
+    PROXY_POINT_THICKNESS, LINE_TYPE, BboxColours, CLASS_COLOURS, CORRIDOR_DASH_LENGTH, CORRIDOR_GAP_LENGTH, \
+    CORRIDOR_COLOUR, CORRIDOR_THICKNESS
+from tram_analytics.v1.pipeline.components.visualiser.visualiser_utils import RailTrackNumpy, draw_rail_track
 
 
 def _draw_rail_corridor_old(img: NDArray, config: RailCorridorConfig):
@@ -85,13 +41,13 @@ def _draw_rail_corridor_old(img: NDArray, config: RailCorridorConfig):
     for start, end in border_pt_pairs: # type: PlanarPosition, PlanarPosition
         dashed_line(img, to_px(start), to_px(end),
                     dash=CORRIDOR_DASH_LENGTH, gap=CORRIDOR_GAP_LENGTH,
-                    color=CORRIDOR_COLOR, thickness=CORRIDOR_THICKNESS,
+                    color=CORRIDOR_COLOUR, thickness=CORRIDOR_THICKNESS,
                     lineType=LINE_TYPE)
     # centre line
     for start, end in pairwise(config.centerline): # type: PlanarPosition, PlanarPosition
         dashed_line(img, to_px(start), to_px(end),
                     dash=CORRIDOR_DASH_LENGTH, gap=CORRIDOR_GAP_LENGTH,
-                    color=CORRIDOR_COLOR, thickness=CORRIDOR_THICKNESS,
+                    color=CORRIDOR_COLOUR, thickness=CORRIDOR_THICKNESS,
                     lineType=LINE_TYPE)
 
 def _track_state_from_enhanced(enhanced: EnhancedTrackState) -> TrackState:
@@ -145,7 +101,7 @@ class VisualizerV2(Visualizer):
             config.corridor_id: config
             for config in scene_geometry_config.rail_corridors
         } if scene_geometry_config is not None else None
-        self._rail_corridors: List[RailCorridorNumpy] = self._build_rail_corridors(
+        self._rail_corridors: List[RailTrackNumpy] = self._build_rail_corridors(
             scene_geometry_config.rail_corridors
         )
 
@@ -164,12 +120,12 @@ class VisualizerV2(Visualizer):
         )
         # centerline_int: ndarray[Tuple[int, Literal[2]], np.int32]
         centerline_int: NDArray[np.int32] = centerline.astype(np.int32)
-        corridor: RailCorridorNumpy = RailCorridorNumpy(
-            polygon=polygon_int, centerline=centerline_int
+        corridor: RailTrackNumpy = RailTrackNumpy(
+            polygon=polygon_int, centreline=centerline_int
         )
         return corridor
 
-    def _build_rail_corridors(self, configs: List[RailCorridorConfig]) -> List[RailCorridorNumpy]:
+    def _build_rail_corridors(self, configs: List[RailCorridorConfig]) -> List[RailTrackNumpy]:
         return list(map(lambda c: self._build_corridor(c), configs))
 
     def _draw_rail_corridors_old(self, img: NDArray):
@@ -181,8 +137,8 @@ class VisualizerV2(Visualizer):
 
     def _draw_rail_corridors(self, img: NDArray):
         if self._rail_corridor_configs_by_id is not None:
-            for corridor in self._rail_corridors: # type: RailCorridorNumpy
-                _draw_corridor(img, corridor)
+            for corridor in self._rail_corridors: # type: RailTrackNumpy
+                draw_rail_track(img, corridor)
 
     def _resize_enhanced_track_state(self, state: EnhancedTrackState) -> EnhancedTrackState:
         is_tram: bool = isinstance(state, TramEnhancedTrackState)

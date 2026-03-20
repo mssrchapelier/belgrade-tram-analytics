@@ -1,6 +1,6 @@
 from typing import List
 
-from archive.v1.src.models.models import MainPipelineArtefacts
+from tram_analytics.v1.models.pipeline_artefacts import MainPipelineArtefacts
 from tram_analytics.v1.pipeline.components.scene_state.events.pipeline.events_input import EventsInputData, \
     VehicleInput, SpeedsInput
 

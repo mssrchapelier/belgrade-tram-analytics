@@ -23,9 +23,8 @@ from classy_fastapi import Routable, get
 from common.utils.logging_utils.logging_utils import get_logger_name_for_object
 from archive.v1.src.v_0_1_0.pipeline.pipeline import PipelineArtefacts_Old
 from archive.v1.src.v_0_2_0.pipeline.pipeline import ArtefactsStreamingPipeline, ArtefactsStreamingPipelineConfig
-from archive.v1.src.v_0_1_0.pipeline.pipeline_server import (
-    _encode_numpy_image, PipelineWorkerTimes, PIPELINE_WORKER_TIMEOUT_PER_JOIN
-)
+from tram_analytics.v1.pipeline.server.helpers.packet import _encode_numpy_image
+from tram_analytics.v1.pipeline.server.worker.worker import PIPELINE_WORKER_TIMEOUT_PER_JOIN, PipelineWorkerTimes
 from common.utils.concurrency.mp_utils import ShutdownableProcess, stop_shutdownable
 
 PIPELINE_CACHE_MAX_LEN: int = 50

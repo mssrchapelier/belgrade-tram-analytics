@@ -1,7 +1,6 @@
 __version__ = "0.1.0"
 
-from typing import List, Iterator, Self, TypeAlias, Literal
-from dataclasses import dataclass
+from typing import Iterator, Self, TypeAlias, Literal
 from timeit import default_timer
 import time
 from datetime import datetime, timezone
@@ -11,9 +10,7 @@ from multiprocessing.queues import Queue as QueueType
 from queue import Empty as QueueEmptyException
 import asyncio
 
-import numpy as np
 from numpy.typing import NDArray
-import cv2
 from pydantic import BaseModel
 from pydantic_yaml import parse_yaml_file_as
 import uvicorn
@@ -22,6 +19,8 @@ from classy_fastapi import Routable, get
 
 from archive.v1.src.v_0_1_0.pipeline.pipeline import ImageStreamingPipelineConfig, ImageStreamingPipeline
 from common.utils.concurrency.mp_utils import update_single_item_queue, ShutdownableProcess, stop_shutdownable
+from tram_analytics.v1.pipeline.server.helpers.packet import _encode_numpy_image
+from tram_analytics.v1.pipeline.server.worker.worker import PIPELINE_WORKER_TIMEOUT_PER_JOIN, PipelineWorkerTimes
 
 # Set to `forkserver` to prevent signal handler conflicts inside the pipeline worker process
 # (which did happen at times with `fork` due to FastAPI's own handlers being injected).
@@ -29,13 +28,10 @@ from common.utils.concurrency.mp_utils import update_single_item_queue, Shutdown
 # (potentially slower startup, but inherits less of the parent process's state).
 PROCESS_START_METHOD: Literal["fork", "forkserver", "spawn"] = "forkserver"
 
-OUT_IMG_FORMAT: str = ".jpg"
 HTTP_RESPONSE_MEDIA_TYPE: str = "image/jpeg"
-CV2_FLAGS: List[int] = [cv2.IMWRITE_JPEG_QUALITY, 90]
 
 GET_LATEST_FRAME_MAX_TIMEOUT: float = 5.0
 PIPELINE_WORKER_ALIVE_STATUS_POLLING_INTERVAL: float = 1.0
-PIPELINE_WORKER_TIMEOUT_PER_JOIN: float = 10.0
 
 class FramePacket(BaseModel):
     img: bytes
@@ -43,24 +39,11 @@ class FramePacket(BaseModel):
 
 FramePacketQueue: TypeAlias = QueueType[FramePacket | None]
 
-def _encode_numpy_image(img_numpy: NDArray) -> bytes:
-    contiguous: NDArray = np.ascontiguousarray(img_numpy)
-    success, encoded = cv2.imencode(
-        ext=OUT_IMG_FORMAT, img=contiguous, params=CV2_FLAGS
-    )  # type: bool, NDArray
-    encoded_bytes: bytes = encoded.tobytes()
-    return encoded_bytes
 
 def _numpy_to_frame_packet(img_numpy: NDArray) -> FramePacket:
     encoded_bytes: bytes = _encode_numpy_image(img_numpy)
     ts_unix: float = datetime.now(tz=timezone.utc).timestamp()
     return FramePacket(img=encoded_bytes, ts_unix=ts_unix)
-
-@dataclass
-class PipelineWorkerTimes:
-    in_pipeline: float
-    packet_creation: float
-    buffer_update: float
 
 def _get_pipeline_worker_timing_log_line(frame_ts: float, times: PipelineWorkerTimes) -> str:
     total: float = times.in_pipeline + times.packet_creation + times.buffer_update

@@ -11,12 +11,12 @@ from common.utils.time_utils import datetime_to_utc_posix
 from common.utils.dynamic_median_updater import DynamicMedianUpdater
 from tram_analytics.v1.pipeline.components.scene_state.live_state_updater.config.zones_config import SingleZoneConfig, ZonesConfig
 from archive.v1.src.pipeline.components.scene_state.live_state_updater._old_2.live_state_updater import BaseCompletedEvent_Old
-from tram_analytics.v1.models.common_types import ZoneType, VehicleType
+from tram_analytics.v1.models.common_types import ZoneType, VehicleType, SpeedType
 from archive.v1.src.pipeline.components.scene_state.events._old.events_old import (
     EventBoundaryType, LifetimeEvent, ZoneOccupancyEvent, SpeedUpdateEvent, EventsContainer
 )
 from tram_analytics.v1.models.components.scene_state.live_state.live_state import LiveAnalyticsState
-from archive.v1.src.api_server.models.scene_state_settings import SpeedType, ServerSettings
+from archive.v1.src.api_server.models.scene_state_settings import ServerSettings
 
 # --- vehicle states ---
 

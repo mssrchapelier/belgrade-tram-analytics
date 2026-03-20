@@ -12,8 +12,7 @@ from PIL import Image, ImageFile
 
 from common.utils.img.cv2.pretty_put_text import anchor_line_with_bg
 from tram_analytics.v1.pipeline.components.visualiser.config.colour_palette import (
-    TrackColourPalette, TrackColourPaletteItem, TrackLineMarkerColorPalette,
-    LineColorPaletteItem
+    TrackColourPalette, TrackColourPaletteItem, TrackLineMarkerColorPalette
 )
 from tram_analytics.v1.models.common_types import BoundingBox, VehicleType
 from tram_analytics.v1.models.components.frame_ingestion import Frame
@@ -21,46 +20,19 @@ from common.utils.custom_types import ColorTuple
 from common.utils.img.img_bytes_conversion import bytes_from_pil
 from archive.common.utils.img.img_bytes_conversion import pil_from_bytes_old
 from common.utils.random.choose_unique_forever import choose_unique_forever
-from common.utils.img.cv2.drawing import dashed_rectangle, dashed_line
+from common.utils.img.cv2.drawing import dashed_line, PixelPoint, FloatPoint, to_px
 from tram_analytics.v1.pipeline.components.visualiser.config.visualiser_config import (
     VisualiserConfig, FrameOverlayConfig, FrameOverlayTextboxConfig, TrackConfig,
-    DashedLineConfig, TrackStateConfig, TrackStateLineAppearanceConfig,
-    ColorlessTextboxConfig, ClassIDConfig, TrackIDConfig,
-    SingleROIVisualisationConfig
+    TrackStateConfig, SingleROIVisualisationConfig
 )
 from archive.v1.src.v_0_2_0.pipeline.components.visualizer_input_builder import TrackState, TrackWithHistory
-
-
-class BboxColours(BaseModel):
-    border_color: ColorTuple
-
-    # text for: class_id
-    classid_bg_color: ColorTuple
-    classid_text_color: ColorTuple
-
-CLASS_COLOURS: Dict[VehicleType, BboxColours] = {
-    VehicleType.TRAM: BboxColours(
-        border_color=(64, 0, 191), # BF0040 (dark pink)
-        classid_bg_color=(255, 255, 255), # white
-        classid_text_color=(64, 0, 191) # BF0040 (dark pink)
-    ),
-    VehicleType.CAR: BboxColours(
-        border_color=(255, 152, 17), # 0FA1FF (blue nebula)
-        classid_bg_color=(255, 255, 255), # white
-        classid_text_color=(255, 152, 17) # 0FA1FF (blue nebula)
-    )
-}
-
-PixelPoint: TypeAlias = Tuple[int, int]
-FloatPoint: TypeAlias = Tuple[float, float]
-
-def to_px(float_point: FloatPoint) -> PixelPoint:
-    return round(float_point[0]), round(float_point[1])
+from tram_analytics.v1.pipeline.components.visualiser.settings import LINE_TYPE, BboxColours, CLASS_COLOURS
+from tram_analytics.v1.pipeline.components.visualiser.visualiser import _get_track_line_color, _get_track_marker_color, \
+    _draw_track_segment, _draw_marker, _draw_track_state_bbox, _draw_vehicle_type_on_bbox, _draw_track_id_on_bbox
+from tram_analytics.v1.pipeline.components.visualiser.visualiser_utils import bgr_render_as_grey
 
 # detector ID -> ROI vertices
 ROIMap_Float: TypeAlias = Dict[str, List[FloatPoint]]
-
-LINE_TYPE: int = cv2.LINE_8
 
 OUT_PIL_IMG_FORMAT: str = "PNG"
 
@@ -68,63 +40,6 @@ OUT_PIL_IMG_FORMAT: str = "PNG"
 class ROI(BaseModel):
     detector_id: str
     color: ColorTuple
-
-
-def _get_dashed_line_config(parent_config: TrackStateLineAppearanceConfig,
-                            *, is_confirmed: bool, is_matched: bool) -> DashedLineConfig:
-    if not is_confirmed and is_matched:
-        return parent_config.unconfirmed_matched
-    elif not is_confirmed and not is_matched:
-        return parent_config.unconfirmed_unmatched
-    elif is_confirmed and not is_matched:
-        return parent_config.confirmed_unmatched
-    else:
-        raise ValueError(
-            "Can't return dash config: both is_confirmed and is_matched are False (corresponds to a solid line)"
-        )
-
-def _get_track_line_marker_palette_item(palette: TrackLineMarkerColorPalette,
-                                        *, is_confirmed: bool, is_matched: bool) -> LineColorPaletteItem:
-    if is_confirmed:
-        if is_matched:
-            return palette.confirmed_matched
-        return palette.confirmed_unmatched
-    else:
-        if is_matched:
-            return palette.unconfirmed_matched
-        return palette.unconfirmed_unmatched
-
-def _get_track_line_color(palette: TrackLineMarkerColorPalette,
-                          *, is_confirmed: bool, is_matched: bool) -> ColorTuple:
-    palette_item: LineColorPaletteItem = _get_track_line_marker_palette_item(
-        palette, is_confirmed=is_confirmed, is_matched=is_matched
-    )
-    return palette_item.line
-
-def _get_track_marker_color(palette: TrackLineMarkerColorPalette,
-                            *, is_confirmed: bool, is_matched: bool) -> ColorTuple:
-    palette_item: LineColorPaletteItem = _get_track_line_marker_palette_item(
-        palette, is_confirmed=is_confirmed, is_matched=is_matched
-    )
-    return palette_item.marker
-
-def _draw_track_segment(img: NDArray[np.uint8], start: PixelPoint, end: PixelPoint,
-                        *, color: ColorTuple, thickness: int):
-    cv2.line(img=img, pt1=start, pt2=end, color=color,
-                 thickness=thickness, lineType=LINE_TYPE)
-
-def _draw_marker(img: NDArray[np.uint8], center: PixelPoint,
-                 *, marker_size: int, color: ColorTuple):
-    if marker_size <= 0 or marker_size % 2 == 0:
-        raise ValueError(f"marker_size must be an odd positive integer, received: {marker_size}")
-
-    center_x, center_y = center # type: int, int
-    half_size: int = marker_size // 2
-    x1: int = center_x - half_size
-    x2: int = center_x + half_size
-    y1: int = center_y - half_size
-    y2: int = center_y + half_size
-    cv2.rectangle(img=img, pt1=(x1, y1), pt2=(x2, y2), color=color, thickness=-1)
 
 def _draw_track(img: NDArray[np.uint8], states: List[TrackState], *,
                 color_config: TrackLineMarkerColorPalette,
@@ -242,13 +157,6 @@ def _numpy_to_img_bytes(img_bgr: NDArray[uint8]) -> bytes:
         img_bytes: bytes = bytes_from_pil(pil_img, img_format=OUT_PIL_IMG_FORMAT)
     return img_bytes
 
-def _bgr_render_as_gray(img_bgr: NDArray[uint8]) -> NDArray[uint8]:
-    # to 1-dim greyscale
-    gray: NDArray[uint8] = cv2.cvtColor(src=img_bgr, code=cv2.COLOR_BGR2GRAY)
-    # back to 3-dim BGR (but now a greyscale image)
-    gray = cv2.cvtColor(src=gray, code=cv2.COLOR_GRAY2BGR)
-    return gray
-
 @deprecated("Deprecated, use Visualizer._resize_canvas() instead")
 def _resize_to_height_old(img: NDArray[uint8], new_height: int) -> NDArray[uint8]:
     old_height: int = img.shape[0]
@@ -279,90 +187,6 @@ def _draw_frame_info(img: NDArray[uint8], *, frame_id: str, timestamp: datetime,
                         font_face=text_config.font_face,
                         font_scale=text_config.font_scale,
                         thickness=text_config.thickness,
-                        line_type=LINE_TYPE)
-
-def _draw_solid_bbox(img: NDArray[uint8], bbox: BoundingBox, *, color: ColorTuple, thickness: int):
-    pt1: PixelPoint = to_px((bbox.x1, bbox.y1))
-    pt2: PixelPoint = to_px((bbox.x2, bbox.y2))
-    cv2.rectangle(img=img, pt1=pt1, pt2=pt2,
-                  color=color, thickness=thickness, lineType=LINE_TYPE)
-
-def _draw_dashed_bbox(img: NDArray[uint8], bbox: BoundingBox,
-                      *, color: ColorTuple, thickness: int,
-                      dash_config: DashedLineConfig):
-    pt1: PixelPoint = to_px((bbox.x1, bbox.y1))
-    pt2: PixelPoint = to_px((bbox.x2, bbox.y2))
-    dashed_rectangle(img, pt1, pt2,
-                     dash=dash_config.dash_length,
-                     gap=dash_config.gap_length,
-                     color=color, thickness=thickness,
-                     lineType=LINE_TYPE)
-
-def _draw_track_state_bbox(img: NDArray[uint8],
-                           px_bbox: BoundingBox,
-                           *,
-                           color: ColorTuple,
-                           is_confirmed: bool, is_matched: bool,
-                           border_config: TrackStateLineAppearanceConfig,
-                           ):
-    # if not is_confirmed and not is_matched:
-    #     raise ValueError("Invalid track state: at least one of is_confirmed, is_matched must be True")
-
-    bbox_thickness: int = border_config.thickness
-
-    if is_confirmed and is_matched:
-        # track confirmed and object detected
-        _draw_solid_bbox(img, px_bbox, color=color, thickness=bbox_thickness)
-    else:
-        dash_config: DashedLineConfig = _get_dashed_line_config(
-            border_config, is_confirmed=is_confirmed, is_matched=is_matched
-        )
-        _draw_dashed_bbox(img, px_bbox, color=color, thickness=bbox_thickness,
-                          dash_config=dash_config)
-
-def _draw_vehicle_type_on_bbox(img: NDArray[uint8], vehicle_type: VehicleType, px_bbox: BoundingBox,
-                               *, config: ClassIDConfig,
-                               classid_bg_color: ColorTuple,
-                               classid_text_color: ColorTuple):
-    text_len: int = config.display_length
-    # truncate; pad with spaces if shorter; align left
-    class_id_text: str = vehicle_type.upper()
-    text: str = f"{class_id_text[:text_len]: <{text_len}}"
-    textbox_config: ColorlessTextboxConfig = config.textbox
-    # position: outside bbox, anchored to: top left corner, by: bottom left corner
-    anchor: PixelPoint = to_px((px_bbox.x1, px_bbox.y1))
-    anchor_line_with_bg(img, text,
-                        anchor=anchor,
-                        which="bl",
-                        offset=textbox_config.offset,
-                        padding=textbox_config.padding,
-                        bg_color=classid_bg_color,
-                        font_color=classid_text_color,
-                        font_face=textbox_config.font_face,
-                        font_scale=textbox_config.font_scale,
-                        thickness=textbox_config.thickness,
-                        line_type=LINE_TYPE)
-
-def _draw_track_id_on_bbox(img: NDArray[uint8], track_id: str, px_bbox: BoundingBox,
-                           *, config: TrackIDConfig,
-                           trackid_bg_color: ColorTuple,
-                           trackid_text_color: ColorTuple):
-    text_len: int = config.display_length
-    # truncate; pad with spaces if shorter; align right
-    text: str = f"{track_id[:text_len]: >{text_len}}"
-    textbox_config: ColorlessTextboxConfig = config.textbox
-    # position: outside bbox, top right corner, anchored by own bottom-right corner
-    anchor: PixelPoint = to_px((px_bbox.x2, px_bbox.y1))
-    anchor_line_with_bg(img, text,
-                        anchor=anchor,
-                        which="br",
-                        offset=textbox_config.offset,
-                        padding=textbox_config.padding,
-                        bg_color=trackid_bg_color,
-                        font_color=trackid_text_color,
-                        font_face=textbox_config.font_face,
-                        font_scale=textbox_config.font_scale,
-                        thickness=textbox_config.thickness,
                         line_type=LINE_TYPE)
 
 def _draw_track_state(img: NDArray[uint8], state: TrackState,
@@ -511,7 +335,7 @@ class Visualizer:
         transformed: NDArray[uint8] = canvas
         if self.config.to_greyscale:
             # to greyscale
-            transformed = _bgr_render_as_gray(canvas)
+            transformed = bgr_render_as_grey(canvas)
         # upsample / downsample
         transformed = self._resize_canvas(transformed)
         return transformed

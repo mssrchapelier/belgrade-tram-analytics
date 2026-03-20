@@ -1,39 +1,40 @@
-from typing import Tuple, Dict, Any, List
+from typing import Tuple, List, TypeAlias
 from itertools import pairwise
 
 import cv2
 import numpy as np
-from numpy.typing import NDArray, DTypeLike
+from numpy import uint8, float64, int64
+from numpy.typing import NDArray
 
 
-def dashed_line(img: NDArray,
+def dashed_line(img: NDArray[uint8],
                 pt1: Tuple[int, int], pt2: Tuple[int, int],
                 *, dash: int, gap: int,
                 color: Tuple[int, int, int],
                 thickness: int,
                 lineType: int) -> None:
-    pt1_arr: NDArray = np.array(pt1, dtype=np.float32)
-    pt2_arr: NDArray = np.array(pt2, dtype=np.float32)
-    diff: NDArray = pt2_arr - pt1_arr
+    pt1_arr: NDArray[float64] = np.array(pt1, dtype=float64)
+    pt2_arr: NDArray[float64] = np.array(pt2, dtype=float64)
+    diff: NDArray[float64] = pt2_arr - pt1_arr
     length: float = float(np.linalg.norm(diff))
     if length == 0:
         return
-    direction: NDArray = diff / length
+    direction: NDArray[float64] = diff / length
 
     dist_for_cur_start: float = 0.0
     while dist_for_cur_start < length:
-        dash_start: NDArray = (
+        dash_start: List[int] = (
             pt1_arr + direction * dist_for_cur_start
-        ).round().astype(np.int32)
-        dash_end: NDArray = (
+        ).round().astype(int64).tolist()
+        dash_end: List[int] = (
             pt1_arr + direction * min(dist_for_cur_start + dash, length)
-        ).round().astype(np.int32)
+        ).round().astype(int64).tolist()
         cv2.line(img=img, pt1=dash_start, pt2=dash_end,
                  color=color, thickness=thickness, lineType=lineType)
         dist_for_cur_start += dash + gap
 
 
-def dashed_rectangle(img: NDArray,
+def dashed_rectangle(img: NDArray[uint8],
                      pt1: Tuple[int, int], pt2: Tuple[int, int],
                      **kwargs) -> None:
     x1, y1 = pt1 # type: int, int
@@ -45,7 +46,7 @@ def dashed_rectangle(img: NDArray,
         dashed_line(img, v1, v2, **kwargs)
 
 
-def draw_cross(img: NDArray[np.uint8],
+def draw_cross(img: NDArray[uint8],
                *, center: Tuple[int, int],
                size: int,
                color: Tuple[int, int, int],
@@ -75,3 +76,9 @@ def draw_cross(img: NDArray[np.uint8],
     # draw the vertical line
     cv2.line(img=img, pt1=vert_line_pt1, pt2=vert_line_pt2,
              color=color, thickness=thickness, lineType=lineType)
+
+PixelPoint: TypeAlias = Tuple[int, int]
+FloatPoint: TypeAlias = Tuple[float, float]
+
+def to_px(float_point: FloatPoint) -> PixelPoint:
+    return round(float_point[0]), round(float_point[1])

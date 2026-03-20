@@ -1,10 +1,6 @@
-from enum import StrEnum, auto
-
 from pydantic import BaseModel, NonNegativeFloat
 
-class SpeedType(StrEnum):
-    RAW = auto()
-    SMOOTHED = auto()
+from tram_analytics.v1.models.common_types import SpeedType
 
 # --- global server settings ---
 
