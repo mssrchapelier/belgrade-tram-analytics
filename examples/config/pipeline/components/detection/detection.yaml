@@ -6,6 +6,8 @@ detectors:
   - detector_id: detector_trams
     detector_type: yolo
     weights_path: weights/yolo-trams.pt
+    classes:
+      0: tram
     run_kwargs:
       imgsz: 576
       device: cpu
@@ -17,6 +19,8 @@ detectors:
   - detector_id: detector_cars
     detector_type: yolo
     weights_path: weights/yolo-cars.pt
+    classes:
+      2: car
     run_kwargs:
       imgsz: 640
       device: cpu

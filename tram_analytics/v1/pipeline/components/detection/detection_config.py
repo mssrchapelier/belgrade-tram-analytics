@@ -4,6 +4,7 @@ from typing import List, Tuple, Dict, Any, Annotated, TypeAlias, Literal
 from pydantic import BaseModel, Field, field_validator, HttpUrl
 from shapely import Polygon
 
+from tram_analytics.v1.models.common_types import VehicleType
 
 class ROIFilteringPolicy(StrEnum):
     CENTROID = auto()
@@ -45,6 +46,9 @@ class BaseDetectorWorkerConfig(BaseModel):
     # TODO: implement nullable ROI configs (detection anywhere in the image in that case)
     roi: ROIConfig
     detector_id: str
+
+    # detected class ID -> vehicle type
+    classes: Dict[int, VehicleType]
 
 class DetectorConfigYOLO(BaseDetectorWorkerConfig):
     detector_type: Literal[DetectorType.YOLO] = DetectorType.YOLO
