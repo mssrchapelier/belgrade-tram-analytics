@@ -1,0 +1,28 @@
+services:
+  tram_analytics:
+    # run init process for proper signal forwarding
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: belgrade-tram-analytics:0.1.0
+    container_name: belgrade-tram-analytics
+    environment:
+      LOGGING_SERVER_HOST: "0.0.0.0"
+      LOGGING_SERVER_PORT: "9020"
+      PIPELINE_SERVER_HOST: "0.0.0.0"
+      PIPELINE_SERVER_PORT: "8081"
+      DASHBOARD_HOST: "0.0.0.0"
+      DASHBOARD_PORT: "8091"
+      MAIN_DASHBOARD_RENDERING_MAX_THREADS: "1"
+      MULTIPROCESSING_START_METHOD: "forkserver"
+      ASSETS_DIR: "/app/assets"
+      LOGGING_LEVEL: "debug"
+      PIPELINE_CONFIG: "config/pipeline/artefacts_streaming.yaml"
+      DASHBOARD_CONFIG: "config/dashboard/dashboard.yaml"
+      LIVE_STATE_RENDERER_CONFIG: "config/dashboard/live_state_renderer.yaml"
+    ports:
+      - "8081:8081" # pipeline server, API
+      - "8091:8091" # dashboard
+    volumes:
+      - ./_assets:/app/assets

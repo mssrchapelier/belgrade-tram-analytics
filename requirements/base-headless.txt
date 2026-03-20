@@ -1,0 +1,45 @@
+# Dependencies for Docker.
+# Based on base
+# Changes:
+# - opencv-python -> opencv-python-headless
+# - ultralytics > ultralytics-opencv-headless
+
+# --- common ---
+numpy
+torch
+pydantic
+pydantic-yaml
+pyyaml
+tqdm
+
+# --- frame ingestion ---
+av # Python bindings for ffmpeg
+pytz # timezone conversions
+pystatx # get crtime of files on Linux
+
+# --- detection ---
+ultralytics-opencv-headless
+
+# --- tracking ---
+# SORT dependencies
+filterpy
+scikit-image
+lap
+
+# --- analytics ---
+shapely
+utm # coordinate conversion
+
+# --- visualisation ---
+opencv-python-headless
+pillow
+
+# --- networking ---
+uvicorn
+fastapi
+classy-fastapi
+aiohttp
+
+# --- frontend ---
+gradio
+jinja2 # Jinja templates
