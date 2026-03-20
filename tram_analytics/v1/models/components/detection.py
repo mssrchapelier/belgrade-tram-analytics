@@ -3,12 +3,6 @@ from pydantic import BaseModel
 from common.utils.pydantic.types_pydantic import OpenUnitIntervalValue
 from tram_analytics.v1.models.common_types import BoundingBox
 
-
-class DetectionClass(BaseModel):
-    class_id: int
-    label: str
-
-
 class RawDetection(BaseModel):
     class_id: int
     confidence: OpenUnitIntervalValue
