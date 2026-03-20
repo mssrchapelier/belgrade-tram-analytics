@@ -8,7 +8,7 @@ from numpy.typing import NDArray
 from pydantic import BaseModel, Field, ConfigDict
 
 from common.utils.random.id_gen import get_uuid
-from tram_analytics.v1.models.common_types import BoundingBox
+from tram_analytics.v1.models.common_types import BoundingBox, VehicleType
 from tram_analytics.v1.models.components.detection import Detection
 from tram_analytics.v1.models.components.tracking import TrackState, DetectionToTrackState
 from vendor.sort.sort import Sort
@@ -190,52 +190,52 @@ class SortWrapper:
     (i. e. each track ID from each tracker for each specific class is mapped to a unique UUID).
     """
 
-    def __init__(self, *, camera_id: str, class_params: Dict[int, SingleClassSortParams]) -> None:
+    def __init__(self, *, camera_id: str, class_params: Dict[VehicleType, SingleClassSortParams]) -> None:
         """
         Create a tracker for each class.
-        :param class_params: a `Dict` mapping class IDs to the keyword arguments
+        :param class_params: a `Dict` mapping vehicle types to the keyword arguments
         with which to initialise the instance `Sort` for the respective class.
         """
 
         self._camera_id: str = camera_id
 
-        # { class_id: int -> tracker_for_class: Sort }
-        self._trackers: Dict[int, Sort] = {
-            class_id: Sort(**params.model_dump())
-            for class_id, params in class_params.items()
+        # { vehicle_type: int -> tracker_for_class: Sort }
+        self._trackers: Dict[VehicleType, Sort] = {
+            vehicle_type: Sort(**params.model_dump())
+            for vehicle_type, params in class_params.items()
         }
 
         # A wrapper to assign UUIDs to each track.
-        # { class_id: int -> { sort_internal_track_id: int -> track_uuid: str } }
-        self._uuid_map: Dict[int, Dict[int, str]] = {
-            class_id: dict()
-            for class_id in class_params.keys()
+        # { vehicle_type: VehicleType -> { sort_internal_track_id: int -> track_uuid: str } }
+        self._uuid_map: Dict[VehicleType, Dict[int, str]] = {
+            vehicle_type: dict()
+            for vehicle_type in class_params.keys()
         }
 
-    def _split_dets_by_class_id(self, dets: List[Detection]) -> Dict[int, List[Detection]]:
+    def _split_dets_by_vehicle_type(self, dets: List[Detection]) -> Dict[VehicleType, List[Detection]]:
         """
-        Build mappings between all class IDs for which trackers have been initialised
-        and the list of detections in `dets` that have this class ID.
+        Build mappings between all vehicle types for which trackers have been initialised
+        and the list of detections in `dets` that have this vehicle type.
         """
-        # get the class IDs for all Sort trackers
-        class_ids: List[int] = list(self._trackers.keys())
-        # initialise empty lists of detections for all class IDs
-        class_to_dets: Dict[int, List[Detection]] = {
-            class_id: []
-            for class_id in class_ids
+        # get the vehicle types for all Sort trackers
+        vehicle_types: List[VehicleType] = list(self._trackers.keys())
+        # initialise empty lists of detections for all vehicle types
+        vehicle_type_to_dets: Dict[VehicleType, List[Detection]] = {
+            vehicle_type: []
+            for vehicle_type in vehicle_types
         }
         # put each detection into the corresponding list
         for det in dets:  # type: Detection
-            class_id: int = det.raw_detection.class_id
-            if class_id not in class_ids:
+            vehicle_type: VehicleType = det.raw_detection.vehicle_type
+            if vehicle_type not in vehicle_types:
                 raise ValueError(
-                    f"No tracker present for class ID {class_id}.\n)"
+                    f"No tracker present for vehicle type: {vehicle_type}.\n)"
                     + f"Detection ID: {det.detection_id}\n"
                     + "Available classes: {}".format(
                         ", ".join(str(c_id) for c_id in sorted(list(self._trackers.keys()))))
                 )
-            class_to_dets[class_id].append(det)
-        return class_to_dets
+            vehicle_type_to_dets[vehicle_type].append(det)
+        return vehicle_type_to_dets
 
     @staticmethod
     def _sort_output_to_coord_list(sort_output: NDArray[float64]) -> List[List[float]]:
@@ -259,19 +259,19 @@ class SortWrapper:
         msg += "\n\ntrack_estimates:\n\n{}".format(str(results.track_states))
         return msg
 
-    def _remove_ids_for_dead_tracks(self, class_id: int,
+    def _remove_ids_for_dead_tracks(self, vehicle_type: VehicleType,
                                     sort_results: SortResults) -> None:
         """
         From this instance's _uuid_map, for `class_id`, remove mappings
         for track IDs no longer present in the tracker's output
         """
-        if class_id not in self._trackers:
-            raise ValueError(f"Class {class_id} is not registered in _trackers.")
-        if class_id not in self._uuid_map:
-            raise ValueError(f"Class {class_id} is not registered in _uuid_map.")
+        if vehicle_type not in self._trackers:
+            raise ValueError(f"Vehicle type {vehicle_type} is not registered in _trackers.")
+        if vehicle_type not in self._uuid_map:
+            raise ValueError(f"Vehicle type {vehicle_type} is not registered in _uuid_map.")
 
         # get the internal track ID -> track UUID mapping for this class
-        mappings_for_class: Dict[int, str] = self._uuid_map[class_id]
+        mappings_for_class: Dict[int, str] = self._uuid_map[vehicle_type]
         ids_in_mappings: Set[int] = set(mappings_for_class.keys())
         # get the set of track IDs still alive
         ids_alive: Set[int] = set.union(sort_results.matched_confirmed_track_ids,
@@ -283,13 +283,13 @@ class SortWrapper:
         for track_id in ids_to_remove:  # type: int
             mappings_for_class.pop(track_id)
 
-    def _build_entities_from_sort_results_for_class(
+    def _build_entities_from_sort_results_for_vehicle_type(
             self, sort_results: SortResults,
-            *, class_id: int,
+            *, vehicle_type: VehicleType,
             dets: List[Detection]
     ) -> Tuple[List[TrackState], List[DetectionToTrackState]]:
 
-        internal_id_to_uuid_map: Dict[int, str] = self._uuid_map[class_id]
+        internal_id_to_uuid_map: Dict[int, str] = self._uuid_map[vehicle_type]
 
         states: List[TrackState] = []
         det_state_mappings: List[DetectionToTrackState] = []
@@ -328,7 +328,7 @@ class SortWrapper:
                 det_state_mappings.append(track_det_mapping)
 
             state: TrackState = TrackState(track_state_id=state_id,
-                                           class_id=class_id,
+                                           vehicle_type=vehicle_type,
                                            track_id=track_uuid,
                                            is_matched=is_matched,
                                            is_confirmed_track=is_confirmed_track,
@@ -337,8 +337,8 @@ class SortWrapper:
 
         return states, det_state_mappings
 
-    def _update_for_class(
-            self, *, class_id: int, dets: List[Detection]
+    def _update_for_vehicle_type(
+            self, *, vehicle_type: VehicleType, dets: List[Detection]
     ) -> Tuple[List[TrackState], List[DetectionToTrackState]]:
         """
         Update this class's tracker and return the track UUIDs.
@@ -348,25 +348,25 @@ class SortWrapper:
         (i. e. those for which no Kalman trackers are present in the respective `Sort` tracker).
         """
         # TODO: handle None in dets
-        if not all(det.raw_detection.class_id == class_id for det in dets):
-            raise ValueError(f"Invalid dets: all detections must have class ID {class_id}.")
+        if not all(det.raw_detection.vehicle_type == vehicle_type for det in dets):
+            raise ValueError(f"Invalid dets: all detections must have vehicle type {vehicle_type}.")
         # check whether the frame ID is the same in all dets
         if len(set(det.frame_id for det in dets)) > 1:
             raise ValueError(f"Invalid dets: all detections must have frame ID")
 
-        tracker: Sort = self._trackers[class_id]
+        tracker: Sort = self._trackers[vehicle_type]
 
         # transform detections to a NumPy array to be passed to the tracker
         inputs: NDArray[np.float64] = detections_to_sort_input(dets)
 
         sort_results: SortResults = SortResults(**tracker.update(inputs))
 
-        states, det_state_mappings = self._build_entities_from_sort_results_for_class(
-            sort_results, class_id=class_id, dets=dets
+        states, det_state_mappings = self._build_entities_from_sort_results_for_vehicle_type(
+            sort_results, vehicle_type=vehicle_type, dets=dets
         ) # type: List[TrackState], List[DetectionToTrackState]
 
         # remove mappings for inactive tracks
-        self._remove_ids_for_dead_tracks(class_id, sort_results)
+        self._remove_ids_for_dead_tracks(vehicle_type, sort_results)
 
         return states, det_state_mappings
 
@@ -374,21 +374,21 @@ class SortWrapper:
             self, dets: List[Detection]
     ) -> Tuple[List[TrackState], List[DetectionToTrackState]]:
         """
-        For each class, update the respective class's tracker
+        For each vehicle type, update the respective vehicle type's tracker
         and return the track states and their mappings to detection IDs.
 
-        For classes not present among detections in `dets`, update their trackers
+        For vehicle types not present among detections in `dets`, update their trackers
         with an empty NDArray (as required by the implementation of the `Sort` tracker used).
         """
-        class_to_dets: Dict[int, List[Detection]] = self._split_dets_by_class_id(dets)
+        vehicle_type_to_dets: Dict[VehicleType, List[Detection]] = self._split_dets_by_vehicle_type(dets)
 
         states_all: List[TrackState] = []
         det_to_state_mappings_all: List[DetectionToTrackState] = []
 
         # update the trackers per class
-        for class_id, dets_for_class in class_to_dets.items():  # type: int, List[Detection]
-            states, track_det_mappings = self._update_for_class(
-                class_id=class_id, dets=dets_for_class
+        for vehicle_type, dets_for_vehicle_type in vehicle_type_to_dets.items():  # type: VehicleType, List[Detection]
+            states, track_det_mappings = self._update_for_vehicle_type(
+                vehicle_type=vehicle_type, dets=dets_for_vehicle_type
             ) # type: List[TrackState], List[DetectionToTrackState]
 
             states_all.extend(states)

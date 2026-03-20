@@ -15,8 +15,7 @@ from tram_analytics.v1.pipeline.components.visualiser.config.colour_palette impo
     TrackColourPalette, TrackColourPaletteItem, TrackLineMarkerColorPalette,
     LineColorPaletteItem
 )
-from tram_analytics.v1.models.det_class_mappings import get_vehicle_type
-from tram_analytics.v1.models.common_types import BoundingBox
+from tram_analytics.v1.models.common_types import BoundingBox, VehicleType
 from tram_analytics.v1.models.components.frame_ingestion import Frame
 from common.utils.custom_types import ColorTuple
 from common.utils.img.img_bytes_conversion import bytes_from_pil
@@ -39,18 +38,17 @@ class BboxColours(BaseModel):
     classid_bg_color: ColorTuple
     classid_text_color: ColorTuple
 
-CLASS_COLOURS: Dict[int, BboxColours] = {
-    0: BboxColours(
+CLASS_COLOURS: Dict[VehicleType, BboxColours] = {
+    VehicleType.TRAM: BboxColours(
         border_color=(64, 0, 191), # BF0040 (dark pink)
         classid_bg_color=(255, 255, 255), # white
         classid_text_color=(64, 0, 191) # BF0040 (dark pink)
-    ), # finetuned YOLO: trams
-    # 1: BboxColours(
-    2: BboxColours(
+    ),
+    VehicleType.CAR: BboxColours(
         border_color=(255, 152, 17), # 0FA1FF (blue nebula)
         classid_bg_color=(255, 255, 255), # white
         classid_text_color=(255, 152, 17) # 0FA1FF (blue nebula)
-    ) # YOLO pretrained on COCO: cars
+    )
 }
 
 PixelPoint: TypeAlias = Tuple[int, int]
@@ -322,14 +320,13 @@ def _draw_track_state_bbox(img: NDArray[uint8],
         _draw_dashed_bbox(img, px_bbox, color=color, thickness=bbox_thickness,
                           dash_config=dash_config)
 
-def _draw_class_id_on_bbox(img: NDArray[uint8], class_id: int, px_bbox: BoundingBox,
-                           *, config: ClassIDConfig,
-                           classid_bg_color: ColorTuple,
-                           classid_text_color: ColorTuple):
+def _draw_vehicle_type_on_bbox(img: NDArray[uint8], vehicle_type: VehicleType, px_bbox: BoundingBox,
+                               *, config: ClassIDConfig,
+                               classid_bg_color: ColorTuple,
+                               classid_text_color: ColorTuple):
     text_len: int = config.display_length
     # truncate; pad with spaces if shorter; align left
-    # class_id_text: str = str(class_id)
-    class_id_text: str = get_vehicle_type(class_id).upper()
+    class_id_text: str = vehicle_type.upper()
     text: str = f"{class_id_text[:text_len]: <{text_len}}"
     textbox_config: ColorlessTextboxConfig = config.textbox
     # position: outside bbox, anchored to: top left corner, by: bottom left corner
@@ -369,7 +366,7 @@ def _draw_track_id_on_bbox(img: NDArray[uint8], track_id: str, px_bbox: Bounding
                         line_type=LINE_TYPE)
 
 def _draw_track_state(img: NDArray[uint8], state: TrackState,
-                      *, track_id: str, class_id: int,
+                      *, track_id: str, vehicle_type: VehicleType,
                       bbox_colors: BboxColours,
                       trackid_bg_color: ColorTuple,
                       trackid_text_color: ColorTuple,
@@ -382,10 +379,10 @@ def _draw_track_state(img: NDArray[uint8], state: TrackState,
                            is_matched=state.is_matched,
                            border_config=config.bbox_border, color=border_color)
     # draw the class ID
-    _draw_class_id_on_bbox(img, class_id, px_bbox,
-                           config=config.bbox_text.class_id,
-                           classid_bg_color=bbox_colors.classid_bg_color,
-                           classid_text_color=bbox_colors.classid_text_color)
+    _draw_vehicle_type_on_bbox(img, vehicle_type, px_bbox,
+                               config=config.bbox_text.class_id,
+                               classid_bg_color=bbox_colors.classid_bg_color,
+                               classid_text_color=bbox_colors.classid_text_color)
     # draw the track ID
     _draw_track_id_on_bbox(img, track_id, px_bbox,
                            config=config.bbox_text.track_id,

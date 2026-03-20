@@ -1,12 +1,12 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Set
 
+from tram_analytics.v1.models.common_types import VehicleType
 from tram_analytics.v1.models.components.tracking import TrackState, TrackHistory
-
 
 @dataclass
 class MutableTrackHistory:
-    class_id: int
+    vehicle_type: VehicleType
     history: List[TrackState] = field(default_factory=list)
 
 class TrackHistoryUpdater:
@@ -27,17 +27,17 @@ class TrackHistoryUpdater:
         for state in track_states_in_frame: # type: TrackState
             track_id: str = state.track_id
             cur_alive_track_ids.add(track_id)
-            class_id: int = state.class_id
+            vehicle_type: VehicleType = state.vehicle_type
             if track_id in self._tracks:
-                # check that the class ID corresponds to the one stored for the track
+                # check that the vehicle type corresponds to the one stored for the track
                 track: MutableTrackHistory = self._tracks[track_id]
-                if class_id != track.class_id:
-                    msg: str = (f"Got class_id {class_id}, expected {track.class_id} "
+                if vehicle_type != track.vehicle_type:
+                    msg: str = (f"Got vehicle type {vehicle_type}, expected {track.vehicle_type} "
                                 f"for track {track_id} (state {state.track_state_id})")
                     raise ValueError(msg)
             else:
                 # create a new track
-                track: MutableTrackHistory = MutableTrackHistory(class_id=class_id)
+                track = MutableTrackHistory(vehicle_type=vehicle_type)
                 self._tracks[track_id] = track
             # add this state to the track
             track.history.append(state)
@@ -54,7 +54,7 @@ class TrackHistoryUpdater:
         """
         out_obj: List[TrackHistory] = [
             TrackHistory(track_id=track_id,
-                         class_id=mutable_history.class_id,
+                         vehicle_type=mutable_history.vehicle_type,
                          history=mutable_history.history.copy())
             for track_id, mutable_history in self._tracks.items()
         ]
