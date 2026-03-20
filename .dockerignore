@@ -1,6 +1,6 @@
 .dockerignore
 Dockerfile
-.env.example
+docker.env
 .gitignore
 mypy.ini
 
