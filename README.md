@@ -30,7 +30,11 @@ Domain-specific adaptations implemented in this system include:
 
 ## How to use
 
-### Option A: Docker (build from source)
+### Option A: Docker
+
+***CAUTION**: Large Docker image size at the moment (8.5 GB). It is planned to move inference to ONNX Runtime to at least cut the PyTorch and Triton dependencies (accounting for some 2.5 GB of these). For a CPU-only inference runtime, NVIDIA dependencies (some 4.5 GB) can also be excluded.*
+
+#### Option A.1: Build from source
 
 *Implemented, but provide the assets on which to run.*
 
@@ -40,20 +44,32 @@ Domain-specific adaptations implemented in this system include:
     cd belgrade-tram-analytics
     ```
 2. Modify [`docker-compose.yml`](./docker-compose.yml): specify a custom directory on the host to mount into the container in the `volumes` section for the service `tram_analytics`.
-3. Build from the modified `docker-compose.yml`:
+
+NOTE: If inference using a GPU is desired:
+
+(1) modify the Compose file to enable GPU support for the service `tram_analytics` as described [here](https://docs.docker.com/compose/how-tos/gpu-support/);
+
+(2) specify the device to be used by each detector worker in the detection config (`run_kwargs.device`; [line in sample config](./examples/config/pipeline/components/detection/detection.yaml#L13)) as e. g. `"0"` or `"cuda:0"`. 
+
+3. (Optional) If rebuilding the image is not expected, the `pip` cache mount may be removed from the [`Dockerfile`](./Dockerfile) by removing `--mount=type=cache,target=/root/.cache/pip` from the options for `RUN ... pip install ...`. This will, however, make any re-builds take as much time as the first one. Alternatively, just run `docker builder prune` when re-building is no longer expected.
+4. Build from the modified `docker-compose.yml`:
     ```bash
     docker compose build
     ```
-4. *(Must provide a video and configs which to place into the mounted directory. Planned to be hosted on R2 and provided as a public dev link.)*
-5. Start the container:
+5. *(Must provide a video and configs which to place into the mounted directory. Planned to be hosted on R2 and provided as a public dev link.)*
+6. Start the container:
     ```bash
     docker compose up
     ```
-6. Wait for a few seconds for the service to start, then access the dashboard at `http://localhost:8091` (and, if desired, the pipeline API server at `http://localhost:8081/latest` at any moment to get the most recent cached master DTO as JSON).
-7. To stop the container:
+7. Wait for a few seconds for the service to start, then access the dashboard at `http://localhost:8091` (and, if desired, the pipeline API server at `http://localhost:8081/latest` at any moment to get the most recent cached master DTO as JSON).
+8. To stop the container:
     ```bash
     docker compose down
     ```
+
+#### Option A.2: Docker (pull from Docker Hub)
+
+*Under implementation.*
 
 ### Option B: Use directly
 
@@ -68,7 +84,7 @@ python -m venv .venv \
 ```
 Without dev dependencies installed, some of the functionality in [`scripts`](./scripts) (if you need it) might not work.
 
-(Note 1: There are some large dependencies such as `ultralytics` and `torch` which might cause `/tmp` to fill up and for `pip install` to fail. It might be necessary to use e. g. `--cache-dir` with a custom location and clean up manually afterwards.)
+(Note 1: There are some large dependencies, notably `torch` and its dependencies, which might cause `/tmp` to fill up and for `pip install` to fail. It might be necessary to use e. g. `--cache-dir` with a custom location and clean up manually afterwards.)
 
 (Note 2: Headless versions of `ultralytics` and `opencv-python` instead of the full ones may be installed by specifying [`base-headless`](./requirements/base-headless.txt) instead of `base`.)
 
@@ -122,10 +138,6 @@ Dashboard (not terribly useful on its own, however, without the pipeline server 
 TCP logging server (not strictly necessary, but messages logged from some of the child processes will not reach stderr then):
 - module [`common.utils.logging_utils.logging_server`](./common/utils/logging_utils/logging_server.py);
 - function [`run_logging_server()`](./common/utils/logging_utils/logging_server.py#L60).
-
-### Option C: Docker (pull from Docker Hub)
-
-*Under implementation.*
 
 ## More details
 
