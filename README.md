@@ -2,7 +2,7 @@
 
 ## What this is
 
-This repository contains a prototype system for obtaining and displaying domain-specific traffic **analytics for tram zones** (tracks and platforms) and occupying **vehicles** from a video stream **in real time**.
+This repository contains a prototype system for obtaining and displaying **domain-specific traffic analytics** for tram zones (tracks and platforms) and occupying vehicles from a video stream **in real time**.
 
 The system is built around a core **processing pipeline** consisting of multiple stages (frame ingestion, object detection, tracking, speed, class-specific reference point and zone assignment, derived domain-specific events, live scene state, annotated image rendering), and also includes an **API server** and an **operator dashboard** for real-time monitoring.
 
@@ -10,20 +10,20 @@ The system is designed for use in urban traffic analytics settings focusing on t
 
 Domain-specific adaptations implemented in this system include:
 - specialised treatment of trams (rail track and platform assignment, track centreline-bound reference points);
-- speed estimation using homography matching and a specific algorithm for trams;
+- speed estimation using homography matching (mapping pixels to [UTM coordinates](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system)) and a specific algorithm for trams;
 - a domain-specific event emitter and a live state updater focusing on time periods of interest (time spent by the vehicle inside a specific zone, current and previous occupancy for a zone, stationary periods per vehicle/per zone, etc.)
 
 **Completed ([`v1`](./tram_analytics/v1))**:
 - real-time synchronous pipeline
-- tram detector finetuned for one 320p camera on a manually curated dataset (a tram stop zone in Belgrade -- Nemanjina ulica, near Trg Slavija)
+- YOLO v11 "nano" tram detector finetuned for one 320p camera on a manually curated dataset (a tram stop zone in Belgrade -- Nemanjina ulica, near Trg Slavija)
 - FastAPI server for the master DTO + annotated image
 - dashboard (Gradio base + Jinja2 HTML templates / CSS stylesheet)
 
 ***In development ([`v2`](./tram_analytics/v2))***:
 - concurrent operation of the pipeline's steps -- message queue (RabbitMQ)-based
 - multi-stream capability, including whilst sharing the same detector model(s)
-- Redis for real-time data flow
-- SQLite and MinIO for persistence
+- Redis for caching real-time data
+- SQLite and MinIO for persistence (for a future historical analytics module)
 
 *Planned (v3)*:
 - historical analytics exposed through an API endpoint (and to the operator through a section of the dashboard)
@@ -32,7 +32,7 @@ Domain-specific adaptations implemented in this system include:
 
 ### Option A: Docker
 
-***CAUTION**: Large Docker image size at the moment (8.5 GB). It is planned to move inference to ONNX Runtime to at least cut the PyTorch and Triton dependencies (accounting for some 2.5 GB of these). For a CPU-only inference runtime, NVIDIA dependencies (some 4.5 GB) can also be excluded.*
+***CAUTION**: Large Docker image size at the moment (8.5 GB). It is planned to move inference to ONNX Runtime to at least cut PyTorch and other Ultralytics dependencies (accounting for some 2.5 GB of these). For a CPU-only inference runtime, NVIDIA dependencies (some 4.5 GB) can also be excluded.*
 
 #### Option A.1: Build from source
 
@@ -43,9 +43,9 @@ Domain-specific adaptations implemented in this system include:
     git clone https://github.com/mssrchapelier/belgrade-tram-analytics.git
     cd belgrade-tram-analytics
     ```
-2. Modify [`docker-compose.yml`](./docker-compose.yml): specify a custom directory on the host to mount into the container in the `volumes` section for the service `tram_analytics`.
+2. Modify [`docker-compose.yml`](./docker-compose.yml) to **specify a host directory** to mount into the container: in the [`volumes`](./docker-compose.yml#L20) section for the service `tram_analytics`.
 
-NOTE: If inference using a GPU is desired:
+NOTE: If inference using a GPU is desired, perform the following additional steps:
 
 (1) modify the Compose file to enable GPU support for the service `tram_analytics` as described [here](https://docs.docker.com/compose/how-tos/gpu-support/);
 
@@ -59,13 +59,15 @@ NOTE: If inference using a GPU is desired:
 5. *(Must provide a video and configs which to place into the mounted directory. Planned to be hosted on R2 and provided as a public dev link.)*
 6. Start the container:
     ```bash
-    docker compose up
+    docker compose up -d
     ```
+(If monitoring the logs is desired, remove `-d` from the command to run in foreground mode.)
 7. Wait for a few seconds for the service to start, then access the dashboard at `http://localhost:8091` (and, if desired, the pipeline API server at `http://localhost:8081/latest` at any moment to get the most recent cached master DTO as JSON).
 8. To stop the container:
     ```bash
     docker compose down
     ```
+(or `Ctrl-C` if running in foreground mode, and wait a couple of seconds for a graceful shutdown).
 
 #### Option A.2: Docker (pull from Docker Hub)
 
@@ -90,7 +92,7 @@ Without dev dependencies installed, some of the functionality in [`scripts`](./s
 
 #### Make environment variables available at runtime
 
-The application expects variables under the keys specified in [`docker.env`](./docker.env) to be available at runtime as environment variables. The containerised deployment provides this file through Compose; for local use, these variables must first be provided through some other means. This file can be used as a template, but the developer will need to copy and modify it.
+The application expects variables under the keys specified in [`docker.env`](./docker.env) to be available at runtime as environment variables. The containerised deployment provides this file through Compose; for local use, these variables must first be provided through some other means. The `docker.env` file can be used as a template, but the developer will need to copy and modify it.
 
 An env file can be loaded e. g. by using `dotenv` (listed in [dev dependencies](./requirements/dev.txt)) in the following way:
 ```python
