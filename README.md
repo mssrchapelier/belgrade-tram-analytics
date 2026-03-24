@@ -57,17 +57,20 @@ NOTE: If inference using a GPU is desired, perform the following additional step
     docker compose build
     ```
 5. *(Must provide a video and configs which to place into the mounted directory. Planned to be hosted on R2 and provided as a public dev link.)*
+
 6. Start the container:
     ```bash
     docker compose up -d
     ```
 (If monitoring the logs is desired, remove `-d` from the command to run in foreground mode.)
+
 7. Wait for a few seconds for the service to start, then access the dashboard at `http://localhost:8091` (and, if desired, the pipeline API server at `http://localhost:8081/latest` at any moment to get the most recent cached master DTO as JSON).
+
 8. To stop the container:
     ```bash
     docker compose down
     ```
-(or `Ctrl-C` if running in foreground mode, and wait a couple of seconds for a graceful shutdown).
+(or `Ctrl-C` if running in foreground mode, and wait for a couple of seconds for a graceful shutdown).
 
 #### Option A.2: Docker (pull from Docker Hub)
 
