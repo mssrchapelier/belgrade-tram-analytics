@@ -4,6 +4,10 @@
 
 This repository contains a prototype system for obtaining and displaying **domain-specific traffic analytics** for tram zones (tracks and platforms) and occupying vehicles from a video stream **in real time**.
 
+<div align="center" width="100%">
+    <img src="./docs/res/project_showcase.png" alt="Project showcase: Overview of the rendered dashboard, examples of annotated images, and a diagram for the master data transfer object" width="50%" />
+</div>
+
 The system is built around a core **processing pipeline** consisting of multiple stages (frame ingestion, object detection, tracking, speed, class-specific reference point and zone assignment, derived domain-specific events, live scene state, annotated image rendering), and also includes an **API server** and an **operator dashboard** for real-time monitoring.
 
 The system is designed for use in urban traffic analytics settings focusing on trams, but is applicable to rail vehicles in general and handles wheeled vehicles as well (albeit with a more general approach).
