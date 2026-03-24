@@ -2,7 +2,7 @@
 
 ## What this is
 
-This repository contains a prototype system for obtaining and displaying **domain-specific traffic analytics** for tram zones (tracks and platforms) and occupying vehicles from a video stream **in real time**.
+This repository contains a prototype system for obtaining and displaying **domain-specific traffic analytics** for tram zones (tracks and platforms) and occupying vehicles from a video stream in real time.
 
 <div align="center" width="100%">
     <img src="./docs/res/project_showcase.png" alt="Project showcase: Overview of the rendered dashboard, examples of annotated images, and a diagram for the master data transfer object" width="50%" />
@@ -134,7 +134,7 @@ by type of output (all expect a config file path to be passed):
 - annotated images only: [`run_image_streaming_pipeline()`](./tram_analytics/v1/pipeline/pipeline/run_pipeline.py#L26);
 - write to a video file: [`run_video_writer_pipeline()`](./tram_analytics/v1/pipeline/pipeline/run_pipeline.py#L19).
 
-#### Dashboard
+##### Dashboard
 
 Dashboard (not terribly useful on its own, however, without the pipeline server running):
 - module [`tram_analytics.v1.dashboard.dashboard.AsyncLiveUpdateGetter`](./tram_analytics/v1/dashboard/dashboard.py);
@@ -142,7 +142,7 @@ Dashboard (not terribly useful on its own, however, without the pipeline server 
 
 (Note: The dashboard handles API calls to the pipeline server asynchronously through a wrapper utilising `aiohttp` used as an async context manager, and it was judged best for the calling code to manage the event loop; for this reason, this is a coroutine rather than a function.)
 
-#### Logging server
+##### Logging server
 
 TCP logging server (not strictly necessary, but messages logged from some of the child processes will not reach stderr then):
 - module [`common.utils.logging_utils.logging_server`](./common/utils/logging_utils/logging_server.py);
