@@ -22,6 +22,7 @@ Domain-specific adaptations implemented in this system include:
 - YOLO v11 "nano" tram detector finetuned for one 320p camera on a manually curated dataset (a tram stop zone in Belgrade -- Nemanjina ulica, near Trg Slavija)
 - FastAPI server for the master DTO + annotated image
 - dashboard (Gradio base + Jinja2 HTML templates / CSS stylesheet)
+- Docker deployment for CPU-only and GPU targets (pre-built images are available [on Docker Hub](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics))
 
 ***In development ([`v2`](./tram_analytics/v2))***:
 - concurrent operation of the pipeline's steps -- message queue (RabbitMQ)-based
@@ -36,9 +37,16 @@ Domain-specific adaptations implemented in this system include:
 
 ### Option A: Docker
 
-***CAUTION**: Large Docker image size at the moment (8.5 GB). It is planned to move inference to ONNX Runtime to at least cut PyTorch and other Ultralytics dependencies (accounting for some 2.5 GB of these). For a CPU-only inference runtime, NVIDIA dependencies (some 4.5 GB) can also be excluded.*
+#### Available images
 
-#### Option A.1: Build from source
+1. For CPU-only inference environments: tagged with `-cpu`. This is the default image (for ease of running locally).
+   - The corresponding Dockerfile is: [`./Dockerfile`](Dockerfile).
+   - The Compose file is: [`./docker-compose.yml`](docker-compose.yml).
+2. For GPU inference environments: tagged with `-gpu`. This image includes NVIDIA dependencies.
+   - The Dockerfile is: [`./docker/Dockerfile-gpu`](docker/Dockerfile-gpu).
+   - The Compose file is [`./docker/compose-gpu.yml`](docker/compose-gpu.yml).
+
+#### Steps
 
 *Implemented, but provide the assets on which to run.*
 
@@ -47,66 +55,91 @@ Domain-specific adaptations implemented in this system include:
     git clone https://github.com/mssrchapelier/belgrade-tram-analytics.git
     cd belgrade-tram-analytics
     ```
-2. Modify [`docker-compose.yml`](docker/compose-gpu.yml) to **specify a host directory** to mount into the container: in the [`volumes`](docker/compose-gpu.yml#L20) section for the service `tram_analytics`.
+2. Modify the Compose file to **specify a host directory** to mount into the container: in the [`volumes`](docker-compose.yml#L20) section for the service `tram_analytics`.
 
-NOTE: If inference using a GPU is desired, perform the following additional steps:
+3. Obtain the image:
 
-(1) modify the Compose file to enable GPU support for the service `tram_analytics` as described [here](https://docs.docker.com/compose/how-tos/gpu-support/);
+    - Option A: Pull from Docker Hub:
+    
+        - CPU-only:
+        ```bash
+        docker compose pull
+        ```
+        - GPU-enabled:
+        ```bash
+        docker compose -f ./docker/compose-gpu.yml pull
+        ```
+    
+    - Option B: Build from source:
+    
+        - CPU-only:
+        ```bash
+        docker compose build
+        ```
+        - GPU-enabled:
+        ```bash
+        docker compose -f ./docker/compose-gpu.yml build
+        ```
+    
+        *(Optional note for building:)* If rebuilding the image is not expected, the `pip` cache mount may be removed from the Dockerfile by removing `--mount=type=cache,target=/root/.cache/pip` from the options for `RUN ... pip install ...`. This will, however, make any re-builds take as much time as the first one. Alternatively, just run `docker builder prune` when re-building is no longer expected.
 
-(2) specify the device to be used by each detector worker in the detection config (`run_kwargs.device`; [line in sample config](./examples/config/pipeline/components/detection/detection.yaml#L13)) as e. g. `"0"` or `"cuda:0"`. 
+4. *(Must provide a video and configs which to place into the mounted directory. Planned to be hosted on R2 and provided as a public dev link.)*
 
-3. (Optional) If rebuilding the image is not expected, the `pip` cache mount may be removed from the [`Dockerfile`](docker/Dockerfile-gpu) by removing `--mount=type=cache,target=/root/.cache/pip` from the options for `RUN ... pip install ...`. This will, however, make any re-builds take as much time as the first one. Alternatively, just run `docker builder prune` when re-building is no longer expected.
-4. Build from the modified `docker-compose.yml`:
-    ```bash
-    docker compose build
-    ```
-5. *(Must provide a video and configs which to place into the mounted directory. Planned to be hosted on R2 and provided as a public dev link.)*
-
-6. Start the container:
+5. Create and start the container:
+   
+    - CPU-only:
     ```bash
     docker compose up -d
     ```
-(If monitoring the logs is desired, remove `-d` from the command to run in foreground mode.)
+    - GPU-enabled:
+    ```bash
+    docker compose -f ./docker/compose-gpu.yml up -d
+    ```
 
-7. Wait for a few seconds for the service to start, then access the dashboard at `http://localhost:8091` (and, if desired, the pipeline API server at `http://localhost:8081/latest` at any moment to get the most recent cached master DTO as JSON).
+    (If monitoring the logs is desired, remove `-d` from the command to run in foreground mode.)
+
+6. Wait for a few seconds for the service to start.
+   
+7. Access:
+   - the dashboard at `http://localhost:8091`;
+   - if desired, the pipeline API server at `http://localhost:8081/latest` at any moment to get the most recent cached master DTO as JSON.
 
 8. To stop the container:
+   
+    - CPU-only:
     ```bash
     docker compose down
     ```
-(or `Ctrl-C` if running in foreground mode, and wait for a couple of seconds for a graceful shutdown).
-
-#### Option A.2: Docker (pull from Docker Hub)
-
-*Under implementation.*
+    - GPU-enabled:
+    ```bash
+    docker compose -f ./docker/compose-gpu.yml down
+    ```
+    (or `Ctrl-C` if running in foreground mode, and wait for a couple of seconds for a graceful shutdown).
 
 ### Option B: Use directly
 
 #### Dependencies
 
-Create a virtual environment and install both [base](requirements/full-opencv/base.txt) (required) and [dev](./requirements/dev.txt) (recommended) dependencies:
+Create a virtual environment and install dev dependencies for either a CPU-only ([requirements/dev-cpu.txt](requirements/dev-cpu.txt)) or a GPU ([requirements/dev-gpu.txt](requirements/dev-gpu.txt)) environment (change `<target>` accordingly):
 ```bash
 python -m venv .venv \
 # (on Linux)
 && source .venv/bin/activate \
-&& pip install -r ./requirements/reqs-base.txt -r ./requirements/dev.txt
+&& pip install -r ./requirements/dev-<target>.txt
 ```
-Without dev dependencies installed, some of the functionality in [`scripts`](./scripts) (if you need it) might not work.
 
-(Note 1: There are some large dependencies, notably `torch` and its dependencies, which might cause `/tmp` to fill up and for `pip install` to fail. It might be necessary to use e. g. `--cache-dir` with a custom location and clean up manually afterwards.)
-
-(Note 2: Headless versions of `ultralytics` and `opencv-python` instead of the full ones may be installed by specifying [`base-headless`](requirements/base/base.txt) instead of `base`.)
+(Note: For the GPU version, the large size of NVIDIA-related dependencies may cause `/tmp` to fill up and for `pip install` to fail. It may be necessary to use e. g. `--cache-dir` with a custom location and clean up manually afterwards.)
 
 #### Make environment variables available at runtime
 
 The application expects variables under the keys specified in [`docker.env`](./docker.env) to be available at runtime as environment variables. The containerised deployment provides this file through Compose; for local use, these variables must first be provided through some other means. The `docker.env` file can be used as a template, but the developer will need to copy and modify it.
 
-An env file can be loaded e. g. by using `dotenv` (listed in [dev dependencies](./requirements/dev.txt)) in the following way:
+An env file can be loaded e. g. by using `dotenv` (included in dev dependencies) in the following way:
 ```python
 from dotenv import load_dotenv
 load_dotenv("/path/to/.env")
 ```
-Alternatively, the same variables can be loaded in any other convenient way (e. g. `os.environ["ASSETS_DIR"] = "path/to/local/assets/dir"` and the like).
+Alternatively, the same variables can be loaded in any other convenient way (e. g. `os.environ["ASSETS_DIR"] = "path/to/local/assets/dir"` and so on).
 
 When using from a dev environment, it is best to load these in the calling module *prior to importing anything from `tram_analytics.v1`*, as most imports from [`common.settings.constants`](./common/settings/constants.py) contained therein will not otherwise resolve.
 
