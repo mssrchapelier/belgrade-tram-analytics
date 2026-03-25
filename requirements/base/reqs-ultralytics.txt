@@ -1,0 +1,5 @@
+# Transferred to a separate file so that it can be called with --extra-index-url ...
+# to install a CPU-only PyTorch version for a CPU-only inference environment.
+
+# --- detection ---
+ultralytics-opencv-headless

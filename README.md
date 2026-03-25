@@ -47,7 +47,7 @@ Domain-specific adaptations implemented in this system include:
     git clone https://github.com/mssrchapelier/belgrade-tram-analytics.git
     cd belgrade-tram-analytics
     ```
-2. Modify [`docker-compose.yml`](./docker-compose.yml) to **specify a host directory** to mount into the container: in the [`volumes`](./docker-compose.yml#L20) section for the service `tram_analytics`.
+2. Modify [`docker-compose.yml`](docker/compose-gpu.yml) to **specify a host directory** to mount into the container: in the [`volumes`](docker/compose-gpu.yml#L20) section for the service `tram_analytics`.
 
 NOTE: If inference using a GPU is desired, perform the following additional steps:
 
@@ -55,7 +55,7 @@ NOTE: If inference using a GPU is desired, perform the following additional step
 
 (2) specify the device to be used by each detector worker in the detection config (`run_kwargs.device`; [line in sample config](./examples/config/pipeline/components/detection/detection.yaml#L13)) as e. g. `"0"` or `"cuda:0"`. 
 
-3. (Optional) If rebuilding the image is not expected, the `pip` cache mount may be removed from the [`Dockerfile`](./Dockerfile) by removing `--mount=type=cache,target=/root/.cache/pip` from the options for `RUN ... pip install ...`. This will, however, make any re-builds take as much time as the first one. Alternatively, just run `docker builder prune` when re-building is no longer expected.
+3. (Optional) If rebuilding the image is not expected, the `pip` cache mount may be removed from the [`Dockerfile`](docker/Dockerfile-gpu) by removing `--mount=type=cache,target=/root/.cache/pip` from the options for `RUN ... pip install ...`. This will, however, make any re-builds take as much time as the first one. Alternatively, just run `docker builder prune` when re-building is no longer expected.
 4. Build from the modified `docker-compose.yml`:
     ```bash
     docker compose build
@@ -84,18 +84,18 @@ NOTE: If inference using a GPU is desired, perform the following additional step
 
 #### Dependencies
 
-Create a virtual environment and install both [base](./requirements/base.txt) (required) and [dev](./requirements/dev.txt) (recommended) dependencies:
+Create a virtual environment and install both [base](requirements/full-opencv/base.txt) (required) and [dev](./requirements/dev.txt) (recommended) dependencies:
 ```bash
 python -m venv .venv \
 # (on Linux)
 && source .venv/bin/activate \
-&& pip install -r ./requirements/base.txt -r ./requirements/dev.txt
+&& pip install -r ./requirements/reqs-base.txt -r ./requirements/dev.txt
 ```
 Without dev dependencies installed, some of the functionality in [`scripts`](./scripts) (if you need it) might not work.
 
 (Note 1: There are some large dependencies, notably `torch` and its dependencies, which might cause `/tmp` to fill up and for `pip install` to fail. It might be necessary to use e. g. `--cache-dir` with a custom location and clean up manually afterwards.)
 
-(Note 2: Headless versions of `ultralytics` and `opencv-python` instead of the full ones may be installed by specifying [`base-headless`](./requirements/base-headless.txt) instead of `base`.)
+(Note 2: Headless versions of `ultralytics` and `opencv-python` instead of the full ones may be installed by specifying [`base-headless`](requirements/base/base.txt) instead of `base`.)
 
 #### Make environment variables available at runtime
 

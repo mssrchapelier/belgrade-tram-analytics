@@ -6,19 +6,16 @@
 
 # --- common ---
 numpy
-torch
 pydantic
 pydantic-yaml
 pyyaml
 tqdm
+opencv-python-headless
 
 # --- frame ingestion ---
 av # Python bindings for ffmpeg
 pytz # timezone conversions
 pystatx # get crtime of files on Linux
-
-# --- detection ---
-ultralytics-opencv-headless
 
 # --- tracking ---
 # SORT dependencies
@@ -31,7 +28,6 @@ shapely
 utm # coordinate conversion
 
 # --- visualisation ---
-opencv-python-headless
 pillow
 
 # --- networking ---

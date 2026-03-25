@@ -14,16 +14,15 @@ RUN --mount=type=cache,target=/root/.cache/pip \
     pip install --upgrade pip && \
     pip install -r requirements/base.txt
 
-# Ultralytics: specifying a CPU-only version of PyTorch
+# Ultralytics: using the default version of PyTorch for use in a GPU inference environment
 RUN --mount=type=cache,target=/root/.cache/pip \
-    pip install -r requirements/ultralytics.txt \
-    --extra-index-url=https://download.pytorch.org/whl/cpu
+    pip install -r requirements/ultralytics.txt
 
 # Copy the files needed
-COPY common ./common
-COPY tram_analytics ./tram_analytics
-COPY paths.py ./paths.py
-COPY vendor ./vendor
+COPY ../common ./common
+COPY ../tram_analytics ./tram_analytics
+COPY ../paths.py ./paths.py
+COPY ../vendor ./vendor
 
 # Set the application's entry point
 ENTRYPOINT ["python", "-m", "tram_analytics.v1.launcher_joint"]
