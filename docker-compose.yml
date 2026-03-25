@@ -7,7 +7,7 @@ services:
       context: .
       dockerfile: Dockerfile
     image: mssrchapelier/belgrade-tram-analytics:0.1.0-cpu
-    container_name: mssrchapelier/belgrade-tram-analytics
+    container_name: belgrade-tram-analytics
     env_file:
       - ./docker.env
     ports:

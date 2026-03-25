@@ -14,7 +14,7 @@ services:
               count: 1
               capabilities: [ gpu ]
     image: mssrchapelier/belgrade-tram-analytics:0.1.0-gpu
-    container_name: mssrchapelier/belgrade-tram-analytics
+    container_name: belgrade-tram-analytics
     env_file:
       - ../docker.env
     ports:
