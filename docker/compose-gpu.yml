@@ -6,6 +6,13 @@ services:
       # build from the repository root
       context: ..
       dockerfile: ./docker/Dockerfile-gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
     image: mssrchapelier/belgrade-tram-analytics:0.1.0-gpu
     container_name: mssrchapelier/belgrade-tram-analytics
     env_file:
