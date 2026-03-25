@@ -8,7 +8,7 @@ This repository contains a prototype system for obtaining and displaying **domai
     <img src="./docs/res/project_showcase.png" alt="Project showcase: Overview of the rendered dashboard, examples of annotated images, and a diagram for the master data transfer object" width="50%" />
 </div>
 
-The system is built around a core **processing pipeline** consisting of multiple stages (frame ingestion, object detection, tracking, speed, class-specific reference point and zone assignment, derived domain-specific events, live scene state, annotated image rendering), and also includes an **API server** and an **operator dashboard** for real-time monitoring.
+The system is built around a core **processing pipeline** consisting of multiple stages (frame ingestion, object detection, tracking, speed, class-specific reference point and zone assignment, derived domain-specific events, live scene state, annotated image rendering), and also includes an **API server** and an **operator dashboard** for real-time monitoring. For deployment, [Docker images](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics) for CPU-only and GPU runtimes and a set of automatically pre-fetched demo assets are provided.
 
 The system is designed for use in urban traffic analytics settings focusing on trams, but is applicable to rail vehicles in general and handles wheeled vehicles as well (albeit with a more general approach).
 
@@ -46,18 +46,23 @@ Domain-specific adaptations implemented in this system include:
    - The Dockerfile is: [`./docker/Dockerfile-gpu`](docker/Dockerfile-gpu).
    - The Compose file is [`./docker/compose-gpu.yml`](docker/compose-gpu.yml).
 
-#### Steps
+#### Demo assets
 
-*Implemented, but provide the assets on which to run.*
+For the purposes of demonstration, a set of assets consisting of a sample video, model weights for the detection module, and a configuration file bundle is provided.
+
+The user does not need to download them separately and can simply run `docker compose up` (see below), because the Docker containers created here are set up to fetch these files automatically (if they are not already present) from a public R2 bucket prior to starting the application itself. Alternatively, the user can provide their own files or set up ingestion from a network stream (see details below).
+
+If desired, the demo assets can be downloaded manually from the bucket through URLs specified in [`docker/download_demo_assets.sh`](docker/download_demo_assets.sh). Sample configs are also contained in this repository (see [`examples/config`](examples/config)).
+
+#### Steps
 
 1. Clone the repository:
     ```bash
     git clone https://github.com/mssrchapelier/belgrade-tram-analytics.git
     cd belgrade-tram-analytics
     ```
-2. Modify the Compose file to **specify a host directory** to mount into the container: in the [`volumes`](docker-compose.yml#L20) section for the service `tram_analytics`.
 
-3. Obtain the image:
+2. Obtain the image:
 
     - Option A: Pull from Docker Hub:
     
@@ -83,9 +88,7 @@ Domain-specific adaptations implemented in this system include:
     
         *(Optional note for building:)* If rebuilding the image is not expected, the `pip` cache mount may be removed from the Dockerfile by removing `--mount=type=cache,target=/root/.cache/pip` from the options for `RUN ... pip install ...`. This will, however, make any re-builds take as much time as the first one. Alternatively, just run `docker builder prune` when re-building is no longer expected.
 
-4. *(Must provide a video and configs which to place into the mounted directory. Planned to be hosted on R2 and provided as a public dev link.)*
-
-5. Create and start the container:
+3. Create and start the container:
    
     - CPU-only:
     ```bash
@@ -98,13 +101,13 @@ Domain-specific adaptations implemented in this system include:
 
     (If monitoring the logs is desired, remove `-d` from the command to run in foreground mode.)
 
-6. Wait for a few seconds for the service to start.
+4. Wait for a few seconds for the service to start.
    
-7. Access:
+5. Access:
    - the dashboard at `http://localhost:8091`;
    - if desired, the pipeline API server at `http://localhost:8081/latest` at any moment to get the most recent cached master DTO as JSON.
 
-8. To stop the container:
+6. To stop the container:
    
     - CPU-only:
     ```bash
@@ -115,6 +118,25 @@ Domain-specific adaptations implemented in this system include:
     docker compose -f ./docker/compose-gpu.yml down
     ```
     (or `Ctrl-C` if running in foreground mode, and wait for a couple of seconds for a graceful shutdown).
+
+#### Modifications
+
+##### Provide custom assets
+
+Custom assets can be provided by configuring the [`tram-analytics-assets` named volume](docker-compose.yml#L25) to bind a specific host directory as follows:
+```yaml
+driver: local
+driver_opts:
+    type: none
+    o: bind
+    device: path/to/local/assets/dir
+```
+
+##### Ingest from a network stream
+
+The pipeline can be set up to ingest from a network video stream by setting `video_resource_id` to a URL value in the frame ingestion configuration file ([example](examples/config/pipeline/components/frame_ingestion/streamer_topipe.yaml#L2)). The system has been tested to work with RTSP streams.
+
+For testing purposes, a video file can be streamed locally, but the description of this falls outside the scope of this document; a convenient setup that has been tested and can be suggested is the combination of [FFmpeg](https://ffmpeg.org/) and [MediaMTX](https://mediamtx.org/).
 
 ### Option B: Use directly
 
@@ -142,6 +164,15 @@ load_dotenv("/path/to/.env")
 Alternatively, the same variables can be loaded in any other convenient way (e. g. `os.environ["ASSETS_DIR"] = "path/to/local/assets/dir"` and so on).
 
 When using from a dev environment, it is best to load these in the calling module *prior to importing anything from `tram_analytics.v1`*, as most imports from [`common.settings.constants`](./common/settings/constants.py) contained therein will not otherwise resolve.
+
+#### Provide assets
+
+The following must be present in `ASSETS_DIR`:
+- a set of configuration files;
+- model weights for the detector(s);
+- if consuming from a video file: the video file.
+
+Sample assets can be downloaded from the aforementioned [R2 bucket](https://f6b69d30f1e5d15611597fe7e5048e52.eu.r2.cloudflarestorage.com/belgrade-tram-analytics-public-assets).
 
 #### Entry points
 
