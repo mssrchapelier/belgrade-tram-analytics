@@ -6,8 +6,8 @@ services:
       # build from the repository root
       context: .
       dockerfile: Dockerfile
-    image: belgrade-tram-analytics:0.1.0-cpu
-    container_name: belgrade-tram-analytics
+    image: mssrchapelier/belgrade-tram-analytics:0.1.0-cpu
+    container_name: mssrchapelier/belgrade-tram-analytics
     env_file:
       - ./docker.env
     ports:

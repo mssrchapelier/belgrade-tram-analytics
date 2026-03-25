@@ -6,8 +6,8 @@ services:
       # build from the repository root
       context: ..
       dockerfile: ./docker/Dockerfile-gpu
-    image: belgrade-tram-analytics:0.1.0-gpu
-    container_name: belgrade-tram-analytics
+    image: mssrchapelier/belgrade-tram-analytics:0.1.0-gpu
+    container_name: mssrchapelier/belgrade-tram-analytics
     env_file:
       - ../docker.env
     ports:
