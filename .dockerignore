@@ -1,7 +1,7 @@
 .dockerignore
 docker-compose.yml
-docker/Dockerfile-gpu
-docker/compose-gpu.yml
+/docker/Dockerfile-gpu
+/docker/compose-gpu.yml
 docker.env
 .gitignore
 mypy.ini
