@@ -1,4 +1,8 @@
 # dev requirements
+# target: a CPU-only dev environment
+-r base/reqs-base.txt
+# default PyTorch
+-r base/reqs-ultralytics.txt
 
 # --- model visualisation ---
 # create ERDs based on Pydantic models, for easier inspection and analysis of the hierarchy
