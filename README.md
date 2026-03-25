@@ -120,7 +120,7 @@ Domain-specific adaptations implemented in this system include:
 
 #### Dependencies
 
-Create a virtual environment and install dev dependencies for either a CPU-only ([requirements/dev-cpu.txt](requirements/dev-cpu.txt)) or a GPU ([requirements/dev-gpu.txt](requirements/dev-gpu.txt)) environment (change `<target>` accordingly):
+Create a virtual environment and install dev dependencies for either a CPU-only ([`requirements/dev-cpu.txt`](requirements/dev-cpu.txt)) or a GPU ([`requirements/dev-gpu.txt`](requirements/dev-gpu.txt)) environment (change `<target>` accordingly):
 ```bash
 python -m venv .venv \
 # (on Linux)
