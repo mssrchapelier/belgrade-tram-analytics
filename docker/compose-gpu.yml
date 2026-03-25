@@ -4,12 +4,19 @@ services:
     init: true
     build:
       # build from the repository root
-      context: .
-      dockerfile: Dockerfile
-    image: mssrchapelier/belgrade-tram-analytics:0.1.0-cpu
+      context: ..
+      dockerfile: ./docker/Dockerfile-gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    image: mssrchapelier/belgrade-tram-analytics:0.1.0-gpu
     container_name: mssrchapelier/belgrade-tram-analytics
     env_file:
-      - ./docker.env
+      - ../docker.env
     ports:
       # map container ports to host ports, to access the servers on the host
       - "8081:8081" # pipeline server, API
@@ -17,4 +24,4 @@ services:
     volumes:
       # a bind mount into ASSETS_DIR,
       # to provide assets (video file, configs) from which to run the service
-      - ./_assets:/app/assets
+      - ../_assets:/app/assets

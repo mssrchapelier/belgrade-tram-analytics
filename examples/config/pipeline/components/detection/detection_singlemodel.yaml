@@ -10,6 +10,7 @@ detectors:
       1: car
     run_kwargs:
       imgsz: 576
+      # For a GPU inference environment, change to e. g. "cuda:0" or "0"
       device: cpu
     roi:
       policy: area_fraction

@@ -10,6 +10,7 @@ detectors:
       0: tram
     run_kwargs:
       imgsz: 576
+      # For a GPU inference environment, change to e. g. "cuda:0" or "0"
       device: cpu
     roi:
       policy: area_fraction
@@ -23,6 +24,7 @@ detectors:
       2: car
     run_kwargs:
       imgsz: 640
+      # For a GPU inference environment, change to e. g. "cuda:0" or "0"
       device: cpu
       classes: [ 2 ]
     roi:
