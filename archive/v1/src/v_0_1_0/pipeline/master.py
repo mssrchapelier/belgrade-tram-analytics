@@ -13,7 +13,8 @@ from tram_analytics.v1.models.components.frame_ingestion import Frame
 from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.from_file.streamer import FileFrameStreamer
 from tram_analytics.v1.pipeline.components.detection.detection import DetectionService
 from tram_analytics.v1.pipeline.components.detection.detection_config import DetectionServiceConfig, DetectorConfig
-from tram_analytics.v1.pipeline.components.tracking.tracking import SortWrapper, SingleClassSortParams, TrackerStepOutput_Old
+from tram_analytics.v1.pipeline.components.tracking.tracking import SortWrapper, TrackerStepOutput_Old
+from tram_analytics.v1.pipeline.components.tracking.settings import SingleClassSortParams
 from archive.v1.src.v_0_2_0.pipeline.components.visualizer_input_builder_v2 import (
     VisualizerInputBuilderV2, EnhancedTrackWithHistory
 )
