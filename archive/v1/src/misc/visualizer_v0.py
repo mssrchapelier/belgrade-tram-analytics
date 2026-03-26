@@ -27,9 +27,9 @@ from tram_analytics.v1.pipeline.components.visualiser.config.visualiser_config i
 )
 from archive.v1.src.v_0_2_0.pipeline.components.visualizer_input_builder import TrackState, TrackWithHistory
 from tram_analytics.v1.pipeline.components.visualiser.settings import LINE_TYPE, BboxColours, CLASS_COLOURS
-from tram_analytics.v1.pipeline.components.visualiser.visualiser import _get_track_line_color, _get_track_marker_color, \
-    _draw_track_segment, _draw_marker, _draw_track_state_bbox, _draw_vehicle_type_on_bbox, _draw_track_id_on_bbox
-from tram_analytics.v1.pipeline.components.visualiser.visualiser_utils import bgr_render_as_grey
+from tram_analytics.v1.pipeline.components.visualiser.visualiser_utils import bgr_render_as_grey, _get_track_line_color, \
+    _get_track_marker_color, _draw_track_segment, _draw_marker, _draw_track_state_bbox, _draw_vehicle_type_on_bbox, \
+    _draw_track_id_on_bbox
 
 # detector ID -> ROI vertices
 ROIMap_Float: TypeAlias = Dict[str, List[FloatPoint]]
