@@ -7,13 +7,6 @@ from tram_analytics.v1.models.common_types import VehicleType
 
 
 class SpeedsInput(BaseModel):
-    # RESTRICTION:
-    # For every `n`, for every `speed_type` in `{ raw_kmh, smoothed_kmh }`,
-    # if `speed_type` was a `float` at frame `n`,
-    # then it must also be a `float` at frame `n+1`.
-    # In other words, once the speed value has been set to a numerical value,
-    # it cannot be set to None for subsequent frames.
-
     raw_ms: NonNegativeFloat | None
     smoothed_ms: NonNegativeFloat | None
 
