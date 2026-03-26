@@ -4,7 +4,7 @@ from tram_analytics.v1.pipeline.components.scene_state.live_state_updater.config
     ZonesConfig as DestZonesConfig, TrackConfig as DestTrackConfig, PlatformConfig as DestPlatformConfig,
     IntrusionZoneConfig as DestIntrusionZoneConfig
 )
-from tram_analytics.v1.pipeline.components.vehicle_info.zones.zones_config import (
+from tram_analytics.v1.pipeline.components.vehicle_info.components.zones.zones_config import (
     ZonesConfig as MainPipelineZonesConfig
 )
 

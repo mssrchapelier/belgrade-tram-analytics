@@ -30,10 +30,10 @@ from tram_analytics.v1.pipeline.components.scene_state.scene_state import SceneS
 from tram_analytics.v1.pipeline.components.track_history_updater import TrackHistoryUpdater
 from tram_analytics.v1.pipeline.components.tracking.settings import TRACKER_PARAMS
 from tram_analytics.v1.pipeline.components.tracking.tracking import SortWrapper
-from tram_analytics.v1.pipeline.components.vehicle_info.coord_conversion.homography_config import HomographyConfig
-from tram_analytics.v1.pipeline.components.vehicle_info.speeds.config import SpeedCalculatorConfig
-from tram_analytics.v1.pipeline.components.vehicle_info.vehicle_info_updater import ZoneAndSpeedAssigner
-from tram_analytics.v1.pipeline.components.vehicle_info.zones.zones_config import ZonesConfig
+from tram_analytics.v1.pipeline.components.vehicle_info.components.coord_conversion.homography_config import HomographyConfig
+from tram_analytics.v1.pipeline.components.vehicle_info.components.speeds.config import SpeedCalculatorConfig
+from tram_analytics.v1.pipeline.components.vehicle_info.updater.master import ZoneAndSpeedAssigner
+from tram_analytics.v1.pipeline.components.vehicle_info.components.zones.zones_config import ZonesConfig
 from tram_analytics.v1.pipeline.components.visualiser.config.visualiser_config import VisualiserConfig
 from tram_analytics.v1.pipeline.components.visualiser.config.colour_palette import TrackColourPalette
 from tram_analytics.v1.pipeline.components.visualiser.visualiser import Visualiser

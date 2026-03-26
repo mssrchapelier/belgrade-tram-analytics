@@ -7,7 +7,7 @@ from numpy import float64
 from numpy.typing import NDArray
 
 from common.utils.custom_types import PlanarPosition
-from tram_analytics.v1.pipeline.components.vehicle_info.coord_conversion.homography_config import (
+from tram_analytics.v1.pipeline.components.vehicle_info.components.coord_conversion.homography_config import (
     DefiningPointsConfig, PointConfigItem, image_point_from_config, world_point_from_config, HomographyConfig,
     get_cv2_kwargs_for_homography
 )

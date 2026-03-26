@@ -5,7 +5,7 @@ import numpy as np
 from numpy import float64
 from numpy.typing import NDArray
 
-from tram_analytics.v1.pipeline.components.vehicle_info.speeds.config import (
+from tram_analytics.v1.pipeline.components.vehicle_info.components.speeds.config import (
     SpeedSmoothingMethod, MeanVelocitySpeedSmoothingMethodConfig, SpeedSmoothingMethodConfig
 )
 

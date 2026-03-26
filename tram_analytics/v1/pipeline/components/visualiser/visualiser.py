@@ -17,7 +17,7 @@ from tram_analytics.v1.models.components.tracking import TrackState, TrackHistor
 from tram_analytics.v1.models.components.vehicle_info import (
     VehicleInfo, TramRefPoints, CarRefPoints, PositionContainer
 )
-from tram_analytics.v1.pipeline.components.vehicle_info.zones.zones_config import ZonesConfig, RailTrackCoordsConfig
+from tram_analytics.v1.pipeline.components.vehicle_info.components.zones.zones_config import ZonesConfig, RailTrackCoordsConfig
 from tram_analytics.v1.pipeline.components.visualiser.config.colour_palette import (
     TrackLineMarkerColorPalette, TrackColourPalette, TrackColourPaletteItem, LineColorPaletteItem
 )

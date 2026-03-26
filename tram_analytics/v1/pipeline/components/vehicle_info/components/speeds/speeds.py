@@ -19,9 +19,9 @@ from numpy.typing import NDArray
 
 from common.utils.custom_types import PlanarPosition
 from tram_analytics.v1.models.components.vehicle_info import Speeds
-from tram_analytics.v1.pipeline.components.vehicle_info.speeds.config import SpeedSmoothingWindowConfig, \
+from tram_analytics.v1.pipeline.components.vehicle_info.components.speeds.config import SpeedSmoothingWindowConfig, \
     SpeedCalculatorConfig
-from tram_analytics.v1.pipeline.components.vehicle_info.speeds.smoothed_speed import (
+from tram_analytics.v1.pipeline.components.vehicle_info.components.speeds.smoothed_speed import (
     BaseSmoothedSpeedCalculator, get_smoothed_speed_calculator
 )
 
