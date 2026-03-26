@@ -17,7 +17,7 @@ from tram_analytics.v1.pipeline.components.detection.detection_config import (
 )
 from tram_analytics.v1.pipeline.components.detection.detection_config import DetectorConfig, \
     DetectionServiceDeploymentOption
-from tram_analytics.v1.pipeline.components.detection.detector_worker import (
+from tram_analytics.v1.pipeline.components.detection.components.detector_worker import (
     BaseDetectorWorker, InProcessDetectorWorker, SeparateProcessDetectorWorker
 )
 

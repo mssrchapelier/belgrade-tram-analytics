@@ -7,8 +7,8 @@ from numpy.typing import NDArray
 from common.utils.concurrency.mp_utils import stop_shutdownable
 from tram_analytics.v1.models.components.detection import RawDetection
 from tram_analytics.v1.pipeline.components.detection.detection_config import DetectorConfig
-from tram_analytics.v1.pipeline.components.detection.detector import BaseDetector, build_detector
-from tram_analytics.v1.pipeline.components.detection.detector_process import DetectorProcess
+from tram_analytics.v1.pipeline.components.detection.components.detector import BaseDetector, build_detector
+from tram_analytics.v1.pipeline.components.detection.components.detector_process import DetectorProcess
 
 DETECTOR_PROCESS_TIMEOUT_PER_JOIN: float = 5.0
 

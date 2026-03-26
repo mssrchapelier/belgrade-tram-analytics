@@ -5,7 +5,7 @@ from torch import Tensor
 from ultralytics.engine.results import Boxes, Results
 
 from archive.common.utils.img.img_bytes_conversion import pil_from_bytes_old
-from tram_analytics.v1.pipeline.components.detection.detector import convert_yolo_inference_result_to_rawdetections, \
+from tram_analytics.v1.pipeline.components.detection.components.detector import convert_yolo_inference_result_to_rawdetections, \
     YOLODetector
 from tram_analytics.v1.models.components.detection import RawDetection
 

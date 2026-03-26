@@ -18,7 +18,7 @@ from tram_analytics.v1.models.components.detection import RawDetection
 from tram_analytics.v1.pipeline.components.detection.detection_config import (
     DetectorConfig, DetectorConfigYOLO, DetectorConfigRemoteStub
 )
-from tram_analytics.v1.pipeline.components.detection.postprocessors import BaseROIPostprocessor, \
+from tram_analytics.v1.pipeline.components.detection.components.postprocessors import BaseROIPostprocessor, \
     build_roi_postprocessor
 
 

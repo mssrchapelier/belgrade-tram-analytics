@@ -30,7 +30,7 @@ class DetectorProcess(ShutdownableProcess):
         self.out_queue: QueueType[List[RawDetection] | None] = Queue(maxsize=1)
 
     def _run_worker(self) -> None:
-        from tram_analytics.v1.pipeline.components.detection.detector import BaseDetector, build_detector
+        from tram_analytics.v1.pipeline.components.detection.components.detector import BaseDetector, build_detector
 
         logger: Logger = logging.getLogger(get_logger_name_for_object(self))
 

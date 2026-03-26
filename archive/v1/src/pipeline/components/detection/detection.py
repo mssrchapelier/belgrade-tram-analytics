@@ -7,7 +7,7 @@ from ultralytics.engine.results import Boxes
 
 from archive.common.utils.img.img_bytes_conversion import pil_from_bytes_old
 from tram_analytics.v1.models.components.detection import RawDetection
-from tram_analytics.v1.pipeline.components.detection.detector import convert_yolo_inference_result_to_rawdetections
+from tram_analytics.v1.pipeline.components.detection.components.detector import convert_yolo_inference_result_to_rawdetections
 
 
 def _detection_worker(*, in_queue: Queue[bytes], out_queue: Queue[List[RawDetection]],
