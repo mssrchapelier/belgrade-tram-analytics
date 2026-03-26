@@ -8,7 +8,7 @@ This repository contains a prototype system for obtaining and displaying **domai
     <img src="./docs/res/project_showcase.png" alt="Project showcase: Overview of the rendered dashboard, examples of annotated images, and a diagram for the master data transfer object" width="50%" />
 </div>
 
-The system is built around a core **processing pipeline** consisting of multiple stages (frame ingestion, object detection, tracking, speed, class-specific reference point and zone assignment, derived domain-specific events, live scene state, annotated image rendering), and also includes an **API server** and an **operator dashboard** for real-time monitoring. For deployment, [Docker images](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics) for CPU-only and GPU runtimes and a set of automatically pre-fetched demo assets are provided.
+The system is built around a core **processing pipeline** consisting of multiple stages ([frame ingestion](tram_analytics/v1/pipeline/components/frame_ingestion), [object detection](tram_analytics/v1/pipeline/components/detection), [tracking](tram_analytics/v1/pipeline/components/tracking), [speed, class-specific reference point and zone assignment](tram_analytics/v1/pipeline/components/vehicle_info), derived [domain-specific events](tram_analytics/v1/pipeline/components/scene_state/events), [live scene state](tram_analytics/v1/pipeline/components/scene_state/live_state_updater), [annotated image rendering](tram_analytics/v1/pipeline/components/visualiser)), and also includes an **[API server](tram_analytics/v1/pipeline/server)** and an **[operator dashboard](tram_analytics/v1/dashboard)** for real-time monitoring. For deployment, [Docker images](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics) for CPU-only and GPU runtimes and a set of automatically pre-fetched demo assets are provided.
 
 The system is designed for use in urban traffic analytics settings focusing on trams, but is applicable to rail vehicles in general and handles wheeled vehicles as well (albeit with a more general approach).
 
@@ -156,14 +156,14 @@ python -m venv .venv \
 
 The application expects variables under the keys specified in [`docker.env`](./docker.env) to be available at runtime as environment variables. The containerised deployment provides this file through Compose; for local use, these variables must first be provided through some other means. The `docker.env` file can be used as a template, but the developer will need to copy and modify it.
 
-An env file can be loaded e. g. by using `dotenv` (included in dev dependencies) in the following way:
+An env file can be loaded e. g. by using [`dotenv`](https://github.com/theskumar/python-dotenv) (included in dev dependencies) in the following way:
 ```python
 from dotenv import load_dotenv
 load_dotenv("/path/to/.env")
 ```
 Alternatively, the same variables can be loaded in any other convenient way (e. g. `os.environ["ASSETS_DIR"] = "path/to/local/assets/dir"` and so on).
 
-When using from a dev environment, it is best to load these in the calling module *prior to importing anything from `tram_analytics.v1`*, as most imports from [`common.settings.constants`](./common/settings/constants.py) contained therein will not otherwise resolve.
+When using from a dev environment, it is best to load these in the calling module **prior to importing anything from `tram_analytics.v1`**, as most imports from [`common.settings.constants`](./common/settings/constants.py) contained therein will not otherwise resolve.
 
 #### Provide assets
 
@@ -172,7 +172,7 @@ The following must be present in `ASSETS_DIR`:
 - model weights for the detector(s);
 - if consuming from a video file: the video file.
 
-Sample assets can be downloaded from the aforementioned [R2 bucket](https://f6b69d30f1e5d15611597fe7e5048e52.eu.r2.cloudflarestorage.com/belgrade-tram-analytics-public-assets).
+Sample assets can be downloaded from the aforementioned R2 bucket; see paths to individual files in [`docker/download_demo_assets.sh`](docker/download_demo_assets.sh).
 
 #### Entry points
 
@@ -211,7 +211,3 @@ Dashboard (not terribly useful on its own, however, without the pipeline server 
 TCP logging server (not strictly necessary, but messages logged from some of the child processes will not reach stderr then):
 - module [`common.utils.logging_utils.logging_server`](./common/utils/logging_utils/logging_server.py);
 - function [`run_logging_server()`](./common/utils/logging_utils/logging_server.py#L60).
-
-## More details
-
-*More extensive documentation is being written and will be available in: [`docs`](./docs).*
