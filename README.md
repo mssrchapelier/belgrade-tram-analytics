@@ -14,12 +14,12 @@ The system is designed for use in urban traffic analytics settings focusing on t
 
 Domain-specific adaptations implemented in this system include:
 - specialised treatment of trams (rail track and platform assignment, track centreline-bound reference points);
-- speed estimation using homography matching (mapping pixels to [UTM coordinates](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system)) and a specific algorithm for trams;
+- speed estimation using [homography matching](https://en.wikipedia.org/wiki/Homography_(computer_vision)) (mapping pixels to [UTM coordinates](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system)) and a specific algorithm for trams;
 - a domain-specific event emitter and a live state updater focusing on time periods of interest (time spent by the vehicle inside a specific zone, current and previous occupancy for a zone, stationary periods per vehicle/per zone, etc.)
 
 **Completed ([`v1`](./tram_analytics/v1))**:
 - real-time synchronous pipeline
-- YOLO v11 "nano" tram detector finetuned for one 320p camera on a manually curated dataset (a tram stop zone in Belgrade -- Nemanjina ulica, near Trg Slavija)
+- YOLO v11 "nano" tram detector finetuned for one 320p camera on a manually curated dataset (a tram stop zone in Belgrade, Serbia -- [Nemanjina ulica, near Trg Slavija](https://www.openstreetmap.org/#map=19/44.803259/20.464447))
 - FastAPI server for the master DTO + annotated image
 - dashboard (Gradio base + Jinja2 HTML templates / CSS stylesheet)
 - Docker deployment for CPU-only and GPU targets (pre-built images are available [on Docker Hub](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics))
@@ -38,6 +38,8 @@ Domain-specific adaptations implemented in this system include:
 ### Option A: Docker
 
 #### Available images
+
+Pre-built images are hosted [on Docker Hub](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics); images can also be built from this repository.
 
 1. For CPU-only inference environments: tagged with `-cpu`. This is the default image (for ease of running locally).
    - The corresponding Dockerfile is: [`./Dockerfile`](Dockerfile).
