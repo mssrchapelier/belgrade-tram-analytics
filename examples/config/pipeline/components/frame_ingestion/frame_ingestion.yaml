@@ -11,8 +11,9 @@ video_track_idx: 0
 target_height: null
 
 # The manually set timestamp for the first frame in the video (ISO string).
-# Leave unset (or set to null) to use the file creation timestamp of the video file
-# as the first frame's timestamp.
+# Leave unset (or set to null) to use as the first frame's timestamp:
+# - the current time (at initialisation time of the frame ingestion component), if reading from a network stream;
+# - the file creation timestamp of the video file, if reading from a file.
 #video_start_manual_ts: "2025-11-26T13:54:02+00:00"
 
 # Whether to loop the video indefinitely (default: false)
