@@ -136,6 +136,8 @@ driver_opts:
     o: bind
     device: path/to/local/assets/dir
 ```
+Additionally, in the Compose file, [`WITH_DEMO_ASSETS`](docker-compose.yml#L13) in `services.tram_analytics.environment` should be set to `False` to disable any pre-fetching of the demo assets.
+If using the same configuration files, the paths contained in them should be changed accordingly.
 
 ##### Ingest from a network stream
 
