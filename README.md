@@ -38,7 +38,7 @@ Domain-specific adaptations implemented in this system include:
 
 ## How to use
 
-*NOTE: A [configuration guide](docs/config-readme.md) is currently in progress.*
+*NOTE: See [configuration guide](docs/config-readme.md) for details regarding the contents of the YAML configuration files.*
 
 ### Option A: Docker
 
