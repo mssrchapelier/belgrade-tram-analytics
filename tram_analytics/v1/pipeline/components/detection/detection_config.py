@@ -59,6 +59,7 @@ class DetectorConfigYOLO(BaseDetectorWorkerConfig):
     # model_init_kwargs
     init_kwargs: Dict[str, Any] = dict()
     # model_run_kwargs
+    # TODO: send keys of self.classes as a list as the `classes` argument for the call
     run_kwargs: Dict[str, Any] = dict()
 
 class DetectorConfigRemoteStub(BaseDetectorWorkerConfig):

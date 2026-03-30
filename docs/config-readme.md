@@ -7,7 +7,9 @@ This document describes runtime configuration options. These are mostly concentr
 - the configuration files (examples are available under [`examples/config`](../examples/config)).
 
 There are some hardcoded settings as well, although most of them are planned to be moved to one of these two places.
-  
+
+**IMPORTANT NOTE**: All paths specified in YAML configuration files **must be relative to [`ASSETS_DIR`](../docker.env#L44)**.
+
 ## Pipeline
 
 *Example file: [`artefacts_and_images.yaml`](../examples/config/pipeline/master/artefacts_and_images.yaml).*
@@ -50,3 +52,32 @@ Config file paths for individual modules (`config_paths`):
 Additional parameters for reading from a video file (will not work properly with ingestion from a network stream):
 * `loop_video`: whether to loop the video indefinitely (default: `false`).
 * `frame_range`: a range (inclusive) of frames to be processed. The index of the first frame is 0. Default: `null` (to process all frames).
+
+### Detection
+
+*Example file: [detection.yaml](../examples/config/pipeline/components/detection/detection.yaml).*
+*Pydantic model: [DetectionServiceConfig](../tram_analytics/v1/pipeline/components/detection/detection_config.py#L95).*
+
+* `deployment.option`: Defines how to run the detector models defined in this configuration file. Two options are available:
+    * `single_process`: Run the models in a single process and perform inference sequentially.
+    * `separate_worker_processes` *(recommended)*: Run the models in child processes (one per model) and perform inference in parallel. (NOTE: For a CPU-only dev environment, see global runtime settings defined in [`configure_cpu_inference_runtime()`](/home/mssrchapelier/prep/vehicles/belgrade_trams/common/settings/cpu_settings.py#L1) for optimisation.)
+* Detectors (under `detectors`):
+    * `detector_id`: a string ID for the detector.
+    * `detector_type`: the implementation of the detector. Currently, only `yolo` is fully implemented.
+    * `classes`: mappings between numerical class IDs in the output and one of the two: `car` or `tram`. Example:
+        ```
+        0: tram
+        1: car
+        ```
+    * `roi`: the region of interest for the detector (only detections inside this region, as defined below, will be included in the detector's output).
+        * `coords`: A list of pixel coordinates in the format `[ [x_1, y_1], ..., [x_n, y_n] ]` for each of the `n` vertices defining the ROI polygon.
+        * `policy`: The criterion for including a bounding box in the output with respect to the ROI:
+            * `centroid`: If the bounding box's centroid is inside the ROI.
+            * `area_fraction`: If the percentage of the bounding box's area that is inside the ROI is greater than or equal to `min_area_fraction`.
+        * `min_area_fraction` (only with `policy` set to `area_fraction`): see above.
+    
+    For YOLO detectors:
+    * `weights_path`: the path to the weights file for the model.
+    * `init_kwargs`: Any additional keyword arguments with which the model is initialised (see [constructor docs for `ultralytics.YOLO`](https://docs.ultralytics.com/reference/models/yolo/model/#ultralytics.models.yolo.model.YOLO)).
+    * `run_kwargs`: Keyword arguments for prediction runs with this model (see [Ultralytics docs](https://docs.ultralytics.com/modes/predict/#inference-arguments)). Useful ones may include `imgsz` to set the size for inference, `device` for GPU inference. If the model is trained to detect objects that are not mapped to cars or trams, list only the relevant classes in `classes` (it is planned to make this unnecessary).
+    
