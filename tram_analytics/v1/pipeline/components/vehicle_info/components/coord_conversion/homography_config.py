@@ -84,6 +84,8 @@ def _get_cv2_homography_method(method: HomographyEstimationMethod) -> int:
             return 0
         case HomographyEstimationMethod.LMEDS:
             return cv2.LMEDS
+        case HomographyEstimationMethod.RHO:
+            return cv2.RHO
         case _:
             raise ValueError(f"Unsupported method: {method}")
 

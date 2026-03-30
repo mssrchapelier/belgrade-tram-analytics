@@ -6,7 +6,7 @@ services:
       # build from the repository root
       context: .
       dockerfile: Dockerfile
-    image: mssrchapelier/belgrade-tram-analytics:0.3.0-cpu
+    image: mssrchapelier/belgrade-tram-analytics:0.3.1-cpu
     container_name: belgrade-tram-analytics
     environment:
       # Docker-specific; used by the demo asset downloader

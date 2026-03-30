@@ -13,7 +13,7 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    image: mssrchapelier/belgrade-tram-analytics:0.3.0-gpu
+    image: mssrchapelier/belgrade-tram-analytics:0.3.1-gpu
     container_name: belgrade-tram-analytics
     environment:
       # Docker-specific; used by the demo asset downloader
