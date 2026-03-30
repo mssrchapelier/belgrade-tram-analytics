@@ -228,3 +228,26 @@ Every palette item is defined as follows:
 * `trackid_bg_color` and `trackid_text_color`: Colours for rendering the vehicle ID and its textbox.
 
 [Paletton](https://paletton.com/)'s "Shiny" preset was used during the development of this project to pick colour palettes and can be recommended.
+
+## Dashboard
+
+### Dashboard server settings
+
+*Example file: [`dashboard.yaml`](../examples/config/dashboard/dashboard.yaml).*
+
+*Pydantic model: [`TrackColourPalette`](../tram_analytics/v1/dashboard/config.py#L3).*
+
+* `app_title`: The tab title for the browser.
+* `update_interval`: How often to poll the pipeline server for an update (in seconds).
+
+### Rendering settings for the main dashboard
+
+*Example file: [`live_state_renderer.yaml`](../examples/config/dashboard/live_state_renderer.yaml).*
+
+*Pydantic model: [`LiveStateRendererConfig`](../tram_analytics/v1/dashboard/render/config.py#L6).*
+
+These are passed to Jinja2 HTML [templates](../tram_analytics/v1/dashboard/render/templates) through [`LiveStateRenderer`](../tram_analytics/v1/dashboard/render/render.py#L14) to render the main dashboard section ([example screenshot](../docs/res/main_dashboard_rendered.png)).
+
+* `uuid_truncation_length`: the length to which to truncate UUIDs (frame ID, vehicle ID).
+* `speed_unit`: the speed unit in which to show speeds (one of: `metres_per_second`, `kilometres_per_hour`).
+* `speed_decimal_places`: the number of decimal places for showing the floating-point speed values.
