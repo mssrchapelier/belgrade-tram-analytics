@@ -38,6 +38,8 @@ Domain-specific adaptations implemented in this system include:
 
 ## How to use
 
+*NOTE: A [configuration guide](docs/config-readme.md) is currently in progress.*
+
 ### Option A: Docker
 
 #### Available images
