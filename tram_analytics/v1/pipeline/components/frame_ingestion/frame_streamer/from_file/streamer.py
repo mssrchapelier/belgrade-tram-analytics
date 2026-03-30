@@ -1,19 +1,21 @@
+from typing import Tuple, Iterator, override
 from datetime import datetime
 from pathlib import Path
-from typing import Tuple, Iterator
 
 from common.utils.fileops_utils import get_file_creation_time
+from common.utils.misc_utils import is_url
+from common.utils.time_utils import get_datetime_utc
 from tram_analytics.v1.models.components.frame_ingestion import Frame
 from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.base.streamer import BaseFrameStreamer
 from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.from_file.config import \
-    FileFrameStreamerConfig
+    EnhancedFrameStreamerConfig
 
 
-class FileFrameStreamer(BaseFrameStreamer):
+class EnhancedFrameStreamer(BaseFrameStreamer):
 
-    # TODO: rename the class -- it also consumes from network streams
+    # TODO: merge with the base class
 
-    def __init__(self, config: FileFrameStreamerConfig) -> None:
+    def __init__(self, config: EnhancedFrameStreamerConfig) -> None:
         # self._validate_file_path(config.video_resource_id)
         self._video_start_manual_ts: datetime | None = config.video_start_manual_ts
         self._loop_video: bool = config.loop_video
@@ -57,8 +59,14 @@ class FileFrameStreamer(BaseFrameStreamer):
         if not video_path.is_file():
             raise ValueError(f"Not a file: {video_path}")
 
+    @override
     def _get_video_start_time(self) -> datetime:
+        # for a manually set video start time in config: return it
         if self._video_start_manual_ts is not None:
             return self._video_start_manual_ts
-        # Store the file's birth time as the start time.
+        # URL --> current time
+        # TODO: also check whether this is a file URI
+        if is_url(self._video_resource_id):
+            return get_datetime_utc()
+        # file --> the file's birth time
         return get_file_creation_time(self._video_resource_id)

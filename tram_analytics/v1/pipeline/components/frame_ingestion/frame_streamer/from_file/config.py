@@ -6,7 +6,9 @@ from pydantic import NonNegativeInt, field_validator
 from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.base.config import BaseFrameStreamerConfig
 
 
-class FileFrameStreamerConfig(BaseFrameStreamerConfig):
+class EnhancedFrameStreamerConfig(BaseFrameStreamerConfig):
+    # TODO: merge with the base config
+
     # The manually set timestamp for the first frame in the video (ISO string)
     video_start_manual_ts: datetime | None = None
     # Whether to loop the video indefinitely

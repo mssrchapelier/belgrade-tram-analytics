@@ -47,7 +47,7 @@ DETECTOR_TRAM_WEIGHTS_PATH="${ASSETS_DIR}/weights/yolo-v11n-trams.pt"
 DETECTOR_CAR_WEIGHTS_URL="https://pub-16ed5bf3dc1b42ce9bbd3b0e3e072a42.r2.dev/demo/weights/yolo-v11n-cars.pt"
 DETECTOR_CAR_WEIGHTS_PATH="${ASSETS_DIR}/weights/yolo-v11n-cars.pt"
 
-CONFIGS_URL="https://pub-16ed5bf3dc1b42ce9bbd3b0e3e072a42.r2.dev/demo/configs.zip"
+CONFIGS_URL="https://pub-16ed5bf3dc1b42ce9bbd3b0e3e072a42.r2.dev/demo/configs/configs_v_0_3_0.zip"
 # Currently: checking only that the config parent directory exists.
 # Assuming that if it does, then all of the expected files are in it.
 # Listing all expected paths and URLs in a manifest file will enable individual checks.
