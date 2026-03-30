@@ -169,3 +169,15 @@ The configuration file specifies only the parameters for speed smoothing (under 
     * `max_duration`: The maximum duration for the window (in seconds). Can be set to null, which will smooth over all available history (although this behaviour is intended to be deprecated).
     
     It usually makes the most sense to set both these parameters to the same value.
+
+### Scene events
+
+*Example file: [`scene_events_config.yaml`](../examples/config/pipeline/components/scene_state/scene_events_config.yaml).*
+
+*Pydantic model: [`SceneEventsConfig`](../tram_analytics/v1/pipeline/components/scene_state/config/scene_events_config.py#L13).*
+
+Defines two parameters under `stationary_global`:
+* `speed_type_for_motion_status_determination`: Whether to use the raw (`raw`) or smoothed (`smoothed`) speed value to determine the current momentary motion status (stationary/moving) for vehicles.
+* `is_stationary_speed_threshold_ms`: Threshold for the speed value below which the vehicle is assigned a stationary status (in metres per second).
+
+*(Note: The scene state updater imports zones from the zone config for the vehicle info module mentioned above, so there is no need to define the zones here.)*
