@@ -9,9 +9,7 @@ This repository contains a prototype system for obtaining and displaying **domai
     <img src="./docs/res/master_dto_full.png" alt="The class diagram for the master DTO" width="40%" />
 </div>
 
-The system is built around a core **processing pipeline** consisting of multiple stages ([frame ingestion](tram_analytics/v1/pipeline/components/frame_ingestion), [object detection](tram_analytics/v1/pipeline/components/detection), [tracking](tram_analytics/v1/pipeline/components/tracking), [speed, class-specific reference point and zone assignment](tram_analytics/v1/pipeline/components/vehicle_info), derived [domain-specific events](tram_analytics/v1/pipeline/components/scene_state/events), [live scene state](tram_analytics/v1/pipeline/components/scene_state/live_state_updater), [annotated image rendering](tram_analytics/v1/pipeline/components/visualiser)), and also includes an **[API server](tram_analytics/v1/pipeline/server)** and an **[operator dashboard](tram_analytics/v1/dashboard)** for real-time monitoring.
-
-For deployment, [Docker images](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics) for CPU-only / GPU runtimes and a set of demo assets (video, model weights, config file bundle; automatically pre-fetched from an R2 bucket) are provided.
+### Purpose
 
 The system is designed for use in urban traffic analytics settings focusing on trams, but is applicable to rail vehicles in general and handles wheeled vehicles as well (albeit with a more general approach).
 
@@ -19,6 +17,16 @@ Domain-specific adaptations implemented in this system include:
 - specialised treatment of trams (rail track and platform assignment, track centreline-bound reference points);
 - speed estimation using [homography matching](https://en.wikipedia.org/wiki/Homography_(computer_vision)) (mapping pixels to [UTM coordinates](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system)) and a specific algorithm for trams;
 - a domain-specific event emitter and a live state updater focusing on time periods of interest (time spent by the vehicle inside a specific zone, current and previous occupancy for a zone, stationary periods per vehicle/per zone, etc.)
+
+### System overview
+
+The system is built around a core **processing pipeline** consisting of multiple stages ([frame ingestion](tram_analytics/v1/pipeline/components/frame_ingestion), [object detection](tram_analytics/v1/pipeline/components/detection), [tracking](tram_analytics/v1/pipeline/components/tracking), [speed, class-specific reference point and zone assignment](tram_analytics/v1/pipeline/components/vehicle_info), derived [domain-specific events](tram_analytics/v1/pipeline/components/scene_state/events), [live scene state](tram_analytics/v1/pipeline/components/scene_state/live_state_updater), [annotated image rendering](tram_analytics/v1/pipeline/components/visualiser)), and also includes an **[API server](tram_analytics/v1/pipeline/server)** and an **[operator dashboard](tram_analytics/v1/dashboard)** for real-time monitoring.
+
+For deployment, **[Docker images](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics)** for CPU-only / GPU runtimes and a set of demo assets (video, model weights, config file bundle; automatically pre-fetched from an R2 bucket) are provided.
+
+The system is configured mainly through **a set of YAML configuration files** (see: configuration [guide](docs/config-readme.md); sample [config files](examples/config)).
+
+### Project status
 
 **Completed ([`v1`](./tram_analytics/v1))**:
 - real-time synchronous pipeline
@@ -33,7 +41,7 @@ Domain-specific adaptations implemented in this system include:
 - Redis for caching real-time data
 - SQLite and MinIO for persistence (for a future historical analytics module)
 
-*Planned (v3)*:
+*Planned (`v3`)*:
 - historical analytics exposed through an API endpoint (and to the operator through a section of the dashboard)
 
 ## How to use
