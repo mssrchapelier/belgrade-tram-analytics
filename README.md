@@ -5,7 +5,8 @@
 This repository contains a prototype system for obtaining and displaying **domain-specific traffic analytics** for tram zones (tracks and platforms) and occupying vehicles from a video stream in real time.
 
 <div align="center" width="100%">
-    <img src="./docs/res/project_showcase.png" alt="Project showcase: Overview of the rendered dashboard, examples of annotated images, and a diagram for the master data transfer object" width="50%" />
+    <img src="./docs/res/project_showcase.png" alt="Project showcase: Overview of the rendered dashboard, examples of annotated images, and a diagram for the master data transfer object" width="40%" />
+    <img src="./docs/res/master_dto_full.png" alt="The class diagram for the master DTO" width="40%" />
 </div>
 
 The system is built around a core **processing pipeline** consisting of multiple stages ([frame ingestion](tram_analytics/v1/pipeline/components/frame_ingestion), [object detection](tram_analytics/v1/pipeline/components/detection), [tracking](tram_analytics/v1/pipeline/components/tracking), [speed, class-specific reference point and zone assignment](tram_analytics/v1/pipeline/components/vehicle_info), derived [domain-specific events](tram_analytics/v1/pipeline/components/scene_state/events), [live scene state](tram_analytics/v1/pipeline/components/scene_state/live_state_updater), [annotated image rendering](tram_analytics/v1/pipeline/components/visualiser)), and also includes an **[API server](tram_analytics/v1/pipeline/server)** and an **[operator dashboard](tram_analytics/v1/dashboard)** for real-time monitoring. For deployment, [Docker images](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics) for CPU-only and GPU runtimes and a set of automatically pre-fetched demo assets are provided.
