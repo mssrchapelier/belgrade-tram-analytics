@@ -181,3 +181,50 @@ Defines two parameters under `stationary_global`:
 * `is_stationary_speed_threshold_ms`: Threshold for the speed value below which the vehicle is assigned a stationary status (in metres per second).
 
 *(Note: The scene state updater imports zones from the zone config for the vehicle info module mentioned above, so there is no need to define the zones here.)*
+
+### Visualiser
+
+#### Main config
+
+*Example file: [`visualiser.yaml`](../examples/config/pipeline/components/visualiser/visualiser.yaml).*
+
+*Pydantic model: [`VisualiserConfig`](../tram_analytics/v1/pipeline/components/visualiser/config/visualiser_config.py#L79).*
+
+* `out_height`: The height of the rendered image (in pixels). Default: null (to preserve the source dimensions). For low-resolution source images, it may be desirable to upsample them for rendering so that the canvas is not too cramped for the annotations.
+* `to_greyscale`: Whether to render the canvas in greyscale prior to drawing annotations on it (this can make them more legible). Default: `true`.
+* `frame_overlay`: Parameters for overlay with details related to the entire frame. Currently defines the text box in which the frame ID and timestamp are being displayed.
+    * `frame_id_display_length`: The length to which to truncate the frame's UUID (from the right).
+    * `timestamp_format`: The format in which to render the frame's timestamp (see more [here](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes)).
+    * `textbox`: Parameters for the box containing the overlay text (`anchor`, `which_corner`, `bg_color`, `font_color`, `offset`, `padding`, `font_scale`, `thickness`).
+* `track`: Parameters for rendering vehicles' trajectories:
+    * `marker_size`: The size of the marker placed at each historical position of the centroid of the vehicle's bounding box.
+    * `line_thickness`: The thickness of the line connecting the markers.
+    See below for the colours for markers and connecting lines.
+* `track_state`: Parameters for rendering the current *tracker* bounding boxes for vehicles (i. e. the outputs of the tracking module; the raw detected bounding boxes are preserved in the output but are not rendered).
+    * `bbox_border`: The border of the *tracker* bounding box, i. e. the output of the tracking module (the raw detected bounding boxes are preserved in the output but are not rendered).
+    The appearance of the border depends on the track state's current status, namely whether it is **confirmed** and whether it is **matched** with an actual detection:
+      * The border for the bounding box for a track state that is confirmed and matched is a **continuous** line.
+      * For the other three combinations, the sets of parameters defining a **dashed** line are defined under `unconfirmed_unmatched`, `unconfirmed_matched` and `confirmed_unmatched`. Each set defines `dash_length` and `gap_length`.
+    * `bbox_text`: Text boxes for the vehicle's class name (`class_id`) and vehicle ID (`track_id`). Each of the sets defines `display_length` to which to truncate the ID, and `textbox` (with `offset`, `padding`, `font_scale` and `thickness`).
+* `speed`: Parameters for rendering the speed values near the bounding boxes *(planned to be moved under the `track_state` section)*.
+    * `unit`: One of `kilometres_per_hour`, `metres_per_second`. A conversion function will be used before rendering if necessary.
+    * `render`: Rendering parameters defined similarly to those in `track_state.bbox_text`.
+* `roi`: Parameters for rendering the detector's regions of interest *(it is planned to deprecate this and introduce zone rendering in lieu of this; presently, only the rail tracks are rendered)*. Defined as a list, each of whose entries contains:
+    * `detector_id`: the ID of the detector for which to draw the ROI;
+    * `color`, `thickness`, `dash_length`, `gap_length` for the polygon's border.
+    
+#### Colour palettes for individual vehicles
+
+*Example file: [`colours.yaml`](../examples/config/pipeline/components/visualiser/colour_palette/colours.yaml).*
+
+*Pydantic model: [`TrackColourPalette`](../tram_analytics/v1/pipeline/components/visualiser/config/colour_palette.py#L35).*
+
+To distinguish the different vehicles on any given frame more easily, a random colour palette from the ones defined in this file is chosen at the start of every vehicle's lifetime and maintained until the lifetime ends. An attempt to minimise the number of vehicles using the same palette is made by utilising a [wrapper](../common/utils/random/choose_unique_forever.py#L4) around [`random.sample`](https://docs.python.org/3/library/random.html#random.sample).
+
+All colours in this file are defined as lists of integer values from 0 to 255 defining the colour *in the BGR order* as used by OpenCV (e. g. `[ 255, 244, 165 ]` corresponds to `#A5F4FF`).
+
+Every palette item is defined as follows:
+* `lines_markers`: Colours for the trajectory segments depending on the track state's status at every moment (`confirmed_matched`, `confirmed_unmatched`, `unconfirmed_matched`, `unconfirmed_unmatched`). For each of the sets, the colour for the marker (`marker`) and the line from it to the *next* marker (`line`) are defined.
+* `trackid_bg_color` and `trackid_text_color`: Colours for rendering the vehicle ID and its textbox.
+
+[Paletton](https://paletton.com/)'s "Shiny" preset was used during the development of this project to pick colour palettes and can be recommended.
