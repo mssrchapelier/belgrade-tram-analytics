@@ -128,69 +128,6 @@ class SpeedCalculator:
         speeds: Speeds = Speeds(raw=raw, smoothed=smoothed)
         return speeds
 
-    @deprecated("Deprecated, use calculate_speeds instead")
-    def _calculate_speeds_old(self, history: Collection[TimedPosition]) -> Speeds:
-        if len(history) == 0:
-            raise ValueError("Can't calculate speeds: empty vehicle history passed")
-        if len(history) == 1:
-            return Speeds(raw=None, smoothed=None)
-
-        positions_list: List[PlanarPosition] = [item.position for item in history]
-        # times in Unix epoch seconds
-        pos_times_list: List[float] = [item.ts.timestamp() for item in history]
-
-        # --- get all positions / times ---
-        # shape: (num_positions, 2)
-        positions: NDArray[float64] = np.array(positions_list, dtype=float64)
-        # shape: (num_positions,)
-        times: NDArray[float64] = np.array(pos_times_list, dtype=float64)
-
-        self._check_inputs_for_speed_calculation(positions=positions, times=times)
-        self._check_times_is_increasing(times)
-
-        # --- raw speed ---
-        raw: float | None = self._calculate_raw_speed_numpy(positions=positions,
-                                                            times=times)
-
-        # --- smoothed speed ---
-        smoothed: float | None = None
-        window_start_idx: int | None = self._calculate_smoothing_window_start_idx(times)
-        if window_start_idx is not None:
-            positions_in_window: NDArray[float64] = positions[window_start_idx:]
-            times_in_window: NDArray[float64] = times[window_start_idx:]
-            smoothed = self._smoothed_calculator.calculate(
-                positions_in_window=positions_in_window,
-                times_in_window=times_in_window
-            )
-
-        speeds: Speeds = Speeds(raw=raw, smoothed=smoothed)
-        return speeds
-
-    @deprecated("Deprecated, use _calculate_raw_speed instead")
-    def _calculate_raw_speed_numpy(self,
-                                   *, positions: NDArray[float64],
-                                   times: NDArray[float64]) -> float | None:
-        """
-        Calculate the raw speed as the displacement between the penultimate and the last position
-        divided by the time elapsed between the two.
-        """
-
-        total_items: int = positions.shape[0]
-        if total_items in (0, 1):
-            # can't calculate a speed to calculate from zero or one positions
-            return None
-
-        # shape: (2, )
-        displacement_xy: NDArray[float64] = positions[-1] - positions[-2]
-        displacement: float = np.linalg.norm(displacement_xy, axis=0).item()
-        time_diff: float = (times[-1] - times[-2]).item()
-        if time_diff <= 0.0:
-            # by design, should not happen
-            raise RuntimeError("Got a non-positive time difference between two positions")
-        speed: float = displacement / time_diff
-        return speed
-
-
     def _calculate_smoothing_window_start_idx(self, times: NDArray[float64]) -> int | None:
         """
         Given the timestamps corresponding to the part of the history of positional observations

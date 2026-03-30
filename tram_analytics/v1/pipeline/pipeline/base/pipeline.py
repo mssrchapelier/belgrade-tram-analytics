@@ -18,9 +18,9 @@ from tram_analytics.v1.models.components.vehicle_info import VehicleInfo
 from tram_analytics.v1.pipeline.components.detection.detection import DetectionService, build_detection_service
 from tram_analytics.v1.pipeline.components.detection.detection_config import DetectionServiceConfig
 from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.from_file.config import \
-    FileFrameStreamerConfig
+    EnhancedFrameStreamerConfig
 from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.from_file.streamer import \
-    FileFrameStreamer
+    EnhancedFrameStreamer
 from tram_analytics.v1.pipeline.components.scene_state.config.scene_events_config import SceneEventsConfig, \
     SceneStateUpdaterConfig
 from tram_analytics.v1.pipeline.components.scene_state.live_state_updater.config.converter import \
@@ -55,8 +55,8 @@ class BasePipeline(ABC):
         self._runtime_initialized: bool = False
 
     def _init_configs(self, paths: ConfigPaths) -> None:
-        self._frame_ingestion_config: FileFrameStreamerConfig = parse_yaml_file_as(
-            FileFrameStreamerConfig, ASSETS_DIR / paths.frame_ingestion
+        self._frame_ingestion_config: EnhancedFrameStreamerConfig = parse_yaml_file_as(
+            EnhancedFrameStreamerConfig, ASSETS_DIR / paths.frame_ingestion
         )
         self._detection_config: DetectionServiceConfig = parse_yaml_file_as(
             DetectionServiceConfig, ASSETS_DIR / paths.detection
@@ -87,7 +87,7 @@ class BasePipeline(ABC):
     @abstractmethod
     def _init_runtime(self) -> None:
 
-        self._frame_producer: FileFrameStreamer = FileFrameStreamer(
+        self._frame_producer: EnhancedFrameStreamer = EnhancedFrameStreamer(
             self._frame_ingestion_config
         )
 

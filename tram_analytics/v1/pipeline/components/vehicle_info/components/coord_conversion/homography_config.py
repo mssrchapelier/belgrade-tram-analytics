@@ -50,6 +50,7 @@ class RansacParamsConfig(BaseRansacRhoParamsConfig):
     max_iters: PositiveInt = 2000
 
 class RhoParamsConfig(BaseRansacRhoParamsConfig):
+    # TODO: add max reprojection error for RANSAC and RHO (see https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html#ga4abc2ece9fab9398f2e560d53c8c9780)
     pass
 
 class BaseHomographyMethodConfig(BaseModel):
@@ -82,8 +83,12 @@ def _get_cv2_homography_method(method: HomographyEstimationMethod) -> int:
     match method:
         case HomographyEstimationMethod.DEFAULT:
             return 0
+        case HomographyEstimationMethod.RANSAC:
+            return cv2.RANSAC
         case HomographyEstimationMethod.LMEDS:
             return cv2.LMEDS
+        case HomographyEstimationMethod.RHO:
+            return cv2.RHO
         case _:
             raise ValueError(f"Unsupported method: {method}")
 

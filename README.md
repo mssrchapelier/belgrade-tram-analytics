@@ -38,6 +38,8 @@ Domain-specific adaptations implemented in this system include:
 
 ## How to use
 
+*NOTE: A [configuration guide](docs/config-readme.md) is currently in progress.*
+
 ### Option A: Docker
 
 #### Available images
@@ -142,7 +144,7 @@ If using the same configuration files, the paths contained in them should be cha
 
 ##### Ingest from a network stream
 
-The pipeline can be set up to ingest from a network video stream by setting `video_resource_id` to a URL value in the frame ingestion configuration file ([example](examples/config/pipeline/components/frame_ingestion/streamer_topipe.yaml#L2)). The system has been tested to work with RTSP streams.
+The pipeline can be set up to ingest from a network video stream by setting `video_resource_id` to a URL value in the frame ingestion configuration file ([example](examples/config/pipeline/components/frame_ingestion/frame_ingestion.yaml#L3)). The system has been tested to work with RTSP streams.
 
 For testing purposes, a video file can be streamed locally, but the description of this falls outside the scope of this document; a convenient setup that has been tested and can be suggested is the combination of [FFmpeg](https://ffmpeg.org/) and [MediaMTX](https://mediamtx.org/).
 

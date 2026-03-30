@@ -17,7 +17,7 @@ from archive.v1.src.models.models import (
 from tram_analytics.v1.models.components.detection import Detection
 from tram_analytics.v1.models.components.frame_ingestion import FrameMetadata, Frame
 from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.from_file.streamer import FileFrameStreamer
-from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.from_file.config import FileFrameStreamerConfig
+from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.from_file.config import EnhancedFrameStreamerConfig
 from tram_analytics.v1.pipeline.components.detection.detection import DetectionService
 from tram_analytics.v1.pipeline.components.detection.detection_config import DetectionServiceConfig
 from tram_analytics.v1.pipeline.components.tracking.tracking import SortWrapper
@@ -92,8 +92,8 @@ class BasePipeline_Old(ABC):
         self._runtime_initialized: bool = False
 
     def _init_configs(self, paths: ConfigPaths) -> None:
-        self._frame_ingestion_config: FileFrameStreamerConfig = parse_yaml_file_as(
-            FileFrameStreamerConfig, paths.frame_ingestion
+        self._frame_ingestion_config: EnhancedFrameStreamerConfig = parse_yaml_file_as(
+            EnhancedFrameStreamerConfig, paths.frame_ingestion
         )
         self._detection_config: DetectionServiceConfig = parse_yaml_file_as(
             DetectionServiceConfig, paths.detection

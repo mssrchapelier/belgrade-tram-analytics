@@ -6,19 +6,15 @@ from pydantic import BaseModel, NonNegativeFloat, model_validator, Field
 
 class SpeedSmoothingMethod(str, Enum):
     MEAN_VELOCITY = "mean_velocity"
-    MOCK = "mock"
 
 class BaseSpeedSmoothingMethodConfig(BaseModel):
-    method_name: Literal[SpeedSmoothingMethod.MEAN_VELOCITY, SpeedSmoothingMethod.MOCK]
+    pass
 
 class MeanVelocitySpeedSmoothingMethodConfig(BaseSpeedSmoothingMethodConfig):
     method_name: Literal[SpeedSmoothingMethod.MEAN_VELOCITY] = SpeedSmoothingMethod.MEAN_VELOCITY
 
-class MockSpeedSmoothingMethodConfig(BaseSpeedSmoothingMethodConfig):
-    method_name: Literal[SpeedSmoothingMethod.MOCK] = SpeedSmoothingMethod.MOCK
-
 SpeedSmoothingMethodConfig: TypeAlias = Annotated[
-    MeanVelocitySpeedSmoothingMethodConfig | MockSpeedSmoothingMethodConfig,
+    MeanVelocitySpeedSmoothingMethodConfig,
     Field(discriminator="method_name")
 ]
 

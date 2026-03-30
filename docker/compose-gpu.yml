@@ -13,7 +13,7 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [ gpu ]
-    image: mssrchapelier/belgrade-tram-analytics:0.2.0-gpu
+    image: mssrchapelier/belgrade-tram-analytics:0.3.2-gpu
     container_name: belgrade-tram-analytics
     environment:
       # Docker-specific; used by the demo asset downloader
@@ -25,7 +25,7 @@ services:
       - "8081:8081" # pipeline server, API
       - "8091:8091" # dashboard
     volumes:
-            # assets (video file, weights, configs) from which to run the service
+      # assets (video file, weights, configs) from which to run the service
       - tram-analytics-assets:/app/assets
 
 volumes:
