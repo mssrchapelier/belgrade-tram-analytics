@@ -5,8 +5,9 @@
 This repository contains a prototype system for obtaining and displaying **domain-specific traffic analytics** for tram zones (tracks and platforms) and occupying vehicles from a video stream in real time.
 
 <div align="center" width="100%">
-    <img src="./docs/res/project_showcase.png" alt="Project showcase: Overview of the rendered dashboard, examples of annotated images, and a diagram for the master data transfer object" width="40%" />
-    <img src="./docs/res/master_dto_full.png" alt="The class diagram for the master DTO" width="40%" />
+    <img src="./docs/res/project_showcase.png" alt="Project showcase: Overview of the rendered dashboard, examples of annotated images, and a diagram for the master data transfer object" align="center" width="30%" />
+    <img src="./docs/res/master_dto_full.png" alt="The entity relationship diagram for the master data transfer object" align="center" width="30%" />
+    <img src="./docs/res/main_dashboard_rendered.png" alt="The main section of the dashboard" align="center" width="30%" />
 </div>
 
 ### Purpose
