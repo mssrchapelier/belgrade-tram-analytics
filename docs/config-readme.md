@@ -81,3 +81,91 @@ Additional parameters for reading from a video file (will not work properly with
     * `init_kwargs`: Any additional keyword arguments with which the model is initialised (see [constructor docs for `ultralytics.YOLO`](https://docs.ultralytics.com/reference/models/yolo/model/#ultralytics.models.yolo.model.YOLO)).
     * `run_kwargs`: Keyword arguments for prediction runs with this model (see [Ultralytics docs](https://docs.ultralytics.com/modes/predict/#inference-arguments)). Useful ones may include `imgsz` to set the size for inference, `device` for GPU inference. If the model is trained to detect objects that are not mapped to cars or trams, list only the relevant classes in `classes` (it is planned to make this unnecessary).
     
+### Vehicle info
+
+#### Homography
+
+*Example file: [`homography.yaml`](../examples/config/pipeline/components/vehicle_info/homography.yaml).*
+
+*Pydantic model: [`HomographyConfig`](../tram_analytics/v1/pipeline/components/vehicle_info/components/coord_conversion/homography_config.py#L77).*
+
+This config defines how a [homography matrix](https://en.wikipedia.org/wiki/Homography_(computer_vision)) for converting image coordinates to world coordinates is built for a given scene. The configuration model is designed for use with [UTM](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system) grid coordinates.
+
+* `method`: The method used to compute a homography matrix (see details in the OpenCV documentation for [`findHomography()`](https://docs.opencv.org/4.x/d9/d0c/group__calib3d.html#ga4abc2ece9fab9398f2e560d53c8c9780)).
+    * `method_name`: One of: `default`, `ransac`, `rho`, `lmeds`.
+    * `params` (for `ransac` only): `max_iters`(default: 2000) -- the maximum number of RANSAC iterations.
+* `defining_points`: a list of defining points for calculation of the homography matrix.
+  Each entry has the following format:
+    * `image`: the pixel coordinates for the mapped point. Example:
+        ```
+        x: 203
+        y: 118
+        ```
+    * `world`: the UTM coordinates for the mapped point: `northing`, `easting`, and `zone` (with `number` and `letter`). Example:
+        ```
+        northing: 4961260.0
+        easting: 457608.0
+        zone:
+          number: 34
+          letter: "T"
+        ```
+      
+#### Zones
+
+*Example file: [`zones_config.yaml`](../examples/config/pipeline/components/vehicle_info/zones_config.yaml).*
+
+*Pydantic model: [`ZonesConfig`](../tram_analytics/v1/pipeline/components/vehicle_info/components/zones/zones_config.py#L126).*
+
+This configuration file defines the zones for the given camera for which analytics are to be calculated by the pipeline.
+
+Three types of zones are defined:
+* `tracks`: rail tracks for trams;
+* `platforms`: sections of tracks defined as stopping platforms for trams;
+* `intrusion_zones`: areas inside which cars are tracked (with the primary intended use being detecting cars being present on separated tracks, possibly in violation of traffic rules).
+
+Inside each of these groups, individual zones are defined under the `zones` key, as a list.
+
+Each zone entry contains the following:
+* `zone_id`: A string ID for the zone (unique across cameras).
+* `zone_numerical_id`: A camera-internal numerical ID for the zone. Used to render analytics on the dashboard in a more convenient way (e. g. "stop 1", "track 2").
+* `description`: A human-readable description for the zone.
+* `coords`: The defining points (in *pixel coordinates*) for the zone, defined differently for the different zone types:
+    * For tracks:
+        * `polygon`: A polygon drawn around the area between the two rails forming a track.
+        * `centreline`: A polygonal chain (a series of line segments) drawn along the track's centreline. It can start and end *outside* of the track polygon (it will be trimmed to its part contained inside the track polygon), but not *inside* it.
+    * For platforms:
+        * `track_zone_id`: The zone ID of the track to which this platform belongs.
+        * `platform_endpoints_supporting_lines`: Two lines defined so that, for each of the lines, the point where it intersects the track's centreline is the platform's terminus (start/end). Specified as follows:
+        ```
+        [
+            # intersection of this line with the centreline defines the platform's START
+            [
+                [supporting_line_for_start_x1, supporting_line_for_start_y1],
+                [supporting_line_for_start_x2, supporting_line_for_start_y2]
+            ],
+            # ... defines the platform's END
+            [
+                [supporting_line_for_end_x1, supporting_line_for_end_y1],
+                [supporting_line_for_end_x2, supporting_line_for_end_y2]
+            ]
+        ]
+        ```
+    * For intrusion zones:
+        * `polygon`: A polygon drawn around the entire intrusion zone.
+    
+Additionally, for intrusion zones in general, the following must be specified under `intrusion_zones.assignment_settings`:
+* `min_area_frac_inside_zone`: The minimum fraction of the area of a vehicle's bounding box that needs to be inside the zone's polygon for the zone to be assigned to this vehicle.
+
+#### Speeds
+
+*Example file: [`speed_config.yaml`](../examples/config/pipeline/components/vehicle_info/speed_config.yaml).*
+
+*Pydantic model: [`SpeedCalculatorConfig`](../tram_analytics/v1/pipeline/components/vehicle_info/components/speeds/speeds.py#L36).*
+
+The configuration file specifies only the parameters for speed smoothing (under `smoothing`) as follows:
+* `method`: The name of the method for speed smoothing under `method_name` and any parameters. Currently, the only implemented method is `mean_velocity` (no additional parameters need to be specified under `method`).
+* `window`: The parameters for the sliding window used for speed smoothing, ending with the last raw speed observation.
+    * `min_duration`: The minimum duration for the window (in seconds), calculated using the frame timestamps associated with the observations. If a sufficient number of observations does not exist yet to satisfy this constraint, the smoothed speed will be set to null.
+    * `max_duration`: The maximum duration for the window (in seconds). Can be set to null, which will smooth over all available history (although this behaviour is intended to be deprecated).
+    
+    It usually makes the most sense to set both these parameters to the same value.
