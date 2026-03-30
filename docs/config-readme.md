@@ -1,19 +1,16 @@
 # Runtime configuration
 
-*Documentation in progress.*
-
 This document describes runtime configuration options. These are mostly concentrated in:
 - the environment variables (defined in [`docker.env`](../docker.env) and [`docker-compose.yml`](../docker-compose.yml) / [`docker/compose-gpu.yml`](../docker/compose-gpu.yml) for the Docker deployment);
 - the configuration files (examples are available under [`examples/config`](../examples/config)).
 
 There are some hardcoded settings as well, although most of them are planned to be moved to one of these two places.
 
-**IMPORTANT NOTE**: All paths specified in YAML configuration files **must be relative to [`ASSETS_DIR`](../docker.env#L44)**.
+***IMPORTANT NOTE**: All paths specified in YAML configuration files **must be relative to [`ASSETS_DIR`](../docker.env#L44)**.*
 
 ## Pipeline
 
-*Example file: [`artefacts_and_images.yaml`](../examples/config/pipeline/master/artefacts_and_images.yaml).*
-*Base Pydantic model: [`BasePipelineConfig`](../tram_analytics/v1/pipeline/pipeline/base/config.py#L13).*
+*Example file: [`artefacts_and_images.yaml`](../examples/config/pipeline/master/artefacts_and_images.yaml). Base Pydantic model: [`BasePipelineConfig`](../tram_analytics/v1/pipeline/pipeline/base/config.py#L13).*
 
 The processing pipeline's configuration consists mainly of several files responsible for the different steps.
 
@@ -40,8 +37,7 @@ Config file paths for individual modules (`config_paths`):
 
 ### Frame ingestion
 
-*Example file: [frame_ingestion.yaml](../examples/config/pipeline/components/frame_ingestion/frame_ingestion.yaml).*
-*Pydantic model: [EnhancedFrameStreamerConfig](../tram_analytics/v1/pipeline/components/frame_ingestion/frame_streamer/from_file/config.py#L9).*
+*Example file: [frame_ingestion.yaml](../examples/config/pipeline/components/frame_ingestion/frame_ingestion.yaml). Pydantic model: [EnhancedFrameStreamerConfig](../tram_analytics/v1/pipeline/components/frame_ingestion/frame_streamer/from_file/config.py#L9).*
 
 * `video_resource_id`: a path to the source video file or a URL to the source video stream (RTSP has been tested to work).
 * `video_track_idx`: the index of the video track in the container (default: `0`).
@@ -55,12 +51,11 @@ Additional parameters for reading from a video file (will not work properly with
 
 ### Detection
 
-*Example file: [detection.yaml](../examples/config/pipeline/components/detection/detection.yaml).*
-*Pydantic model: [DetectionServiceConfig](../tram_analytics/v1/pipeline/components/detection/detection_config.py#L95).*
+*Example file: [detection.yaml](../examples/config/pipeline/components/detection/detection.yaml). Pydantic model: [DetectionServiceConfig](../tram_analytics/v1/pipeline/components/detection/detection_config.py#L96).*
 
 * `deployment.option`: Defines how to run the detector models defined in this configuration file. Two options are available:
     * `single_process`: Run the models in a single process and perform inference sequentially.
-    * `separate_worker_processes` *(recommended)*: Run the models in child processes (one per model) and perform inference in parallel. (NOTE: For a CPU-only dev environment, see global runtime settings defined in [`configure_cpu_inference_runtime()`](/home/mssrchapelier/prep/vehicles/belgrade_trams/common/settings/cpu_settings.py#L1) for optimisation.)
+    * `separate_worker_processes` *(recommended)*: Run the models in child processes (one per model) and perform inference in parallel. (NOTE: For a CPU-only dev environment, see global runtime settings defined in [`configure_cpu_inference_runtime()`](../common/settings/cpu_settings.py#L1) for optimisation.)
 * Detectors (under `detectors`):
     * `detector_id`: a string ID for the detector.
     * `detector_type`: the implementation of the detector. Currently, only `yolo` is fully implemented.
@@ -85,9 +80,7 @@ Additional parameters for reading from a video file (will not work properly with
 
 #### Homography
 
-*Example file: [`homography.yaml`](../examples/config/pipeline/components/vehicle_info/homography.yaml).*
-
-*Pydantic model: [`HomographyConfig`](../tram_analytics/v1/pipeline/components/vehicle_info/components/coord_conversion/homography_config.py#L77).*
+*Example file: [`homography.yaml`](../examples/config/pipeline/components/vehicle_info/homography.yaml). Pydantic model: [`HomographyConfig`](../tram_analytics/v1/pipeline/components/vehicle_info/components/coord_conversion/homography_config.py#L78).*
 
 This config defines how a [homography matrix](https://en.wikipedia.org/wiki/Homography_(computer_vision)) for converting image coordinates to world coordinates is built for a given scene. The configuration model is designed for use with [UTM](https://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system) grid coordinates.
 
@@ -112,9 +105,7 @@ This config defines how a [homography matrix](https://en.wikipedia.org/wiki/Homo
       
 #### Zones
 
-*Example file: [`zones_config.yaml`](../examples/config/pipeline/components/vehicle_info/zones_config.yaml).*
-
-*Pydantic model: [`ZonesConfig`](../tram_analytics/v1/pipeline/components/vehicle_info/components/zones/zones_config.py#L126).*
+*Example file: [`zones_config.yaml`](../examples/config/pipeline/components/vehicle_info/zones_config.yaml). Pydantic model: [`ZonesConfig`](../tram_analytics/v1/pipeline/components/vehicle_info/components/zones/zones_config.py#L126).*
 
 This configuration file defines the zones for the given camera for which analytics are to be calculated by the pipeline.
 
@@ -158,9 +149,7 @@ Additionally, for intrusion zones in general, the following must be specified un
 
 #### Speeds
 
-*Example file: [`speed_config.yaml`](../examples/config/pipeline/components/vehicle_info/speed_config.yaml).*
-
-*Pydantic model: [`SpeedCalculatorConfig`](../tram_analytics/v1/pipeline/components/vehicle_info/components/speeds/speeds.py#L36).*
+*Example file: [`speed_config.yaml`](../examples/config/pipeline/components/vehicle_info/speed_config.yaml). Pydantic model: [`SpeedCalculatorConfig`](../tram_analytics/v1/pipeline/components/vehicle_info/components/speeds/speeds.py#L33).*
 
 The configuration file specifies only the parameters for speed smoothing (under `smoothing`) as follows:
 * `method`: The name of the method for speed smoothing under `method_name` and any parameters. Currently, the only implemented method is `mean_velocity` (no additional parameters need to be specified under `method`).
@@ -172,9 +161,7 @@ The configuration file specifies only the parameters for speed smoothing (under 
 
 ### Scene events
 
-*Example file: [`scene_events_config.yaml`](../examples/config/pipeline/components/scene_state/scene_events_config.yaml).*
-
-*Pydantic model: [`SceneEventsConfig`](../tram_analytics/v1/pipeline/components/scene_state/config/scene_events_config.py#L13).*
+*Example file: [`scene_events_config.yaml`](../examples/config/pipeline/components/scene_state/scene_events_config.yaml). Pydantic model: [`SceneEventsConfig`](../tram_analytics/v1/pipeline/components/scene_state/config/scene_events_config.py#L13).*
 
 Defines two parameters under `stationary_global`:
 * `speed_type_for_motion_status_determination`: Whether to use the raw (`raw`) or smoothed (`smoothed`) speed value to determine the current momentary motion status (stationary/moving) for vehicles.
@@ -186,9 +173,7 @@ Defines two parameters under `stationary_global`:
 
 #### Main config
 
-*Example file: [`visualiser.yaml`](../examples/config/pipeline/components/visualiser/visualiser.yaml).*
-
-*Pydantic model: [`VisualiserConfig`](../tram_analytics/v1/pipeline/components/visualiser/config/visualiser_config.py#L79).*
+*Example file: [`visualiser.yaml`](../examples/config/pipeline/components/visualiser/visualiser.yaml). Pydantic model: [`VisualiserConfig`](../tram_analytics/v1/pipeline/components/visualiser/config/visualiser_config.py#L79).*
 
 * `out_height`: The height of the rendered image (in pixels). Default: null (to preserve the source dimensions). For low-resolution source images, it may be desirable to upsample them for rendering so that the canvas is not too cramped for the annotations.
 * `to_greyscale`: Whether to render the canvas in greyscale prior to drawing annotations on it (this can make them more legible). Default: `true`.
@@ -203,8 +188,8 @@ Defines two parameters under `stationary_global`:
 * `track_state`: Parameters for rendering the current *tracker* bounding boxes for vehicles (i. e. the outputs of the tracking module; the raw detected bounding boxes are preserved in the output but are not rendered).
     * `bbox_border`: The border of the *tracker* bounding box, i. e. the output of the tracking module (the raw detected bounding boxes are preserved in the output but are not rendered).
     The appearance of the border depends on the track state's current status, namely whether it is **confirmed** and whether it is **matched** with an actual detection:
-      * The border for the bounding box for a track state that is confirmed and matched is a **continuous** line.
-      * For the other three combinations, the sets of parameters defining a **dashed** line are defined under `unconfirmed_unmatched`, `unconfirmed_matched` and `confirmed_unmatched`. Each set defines `dash_length` and `gap_length`.
+      * The border for the bounding box for a track state that is confirmed and matched is a *continuous* line.
+      * For the other three combinations, the sets of parameters defining a *dashed* line are defined under `unconfirmed_unmatched`, `unconfirmed_matched` and `confirmed_unmatched`. Each set defines `dash_length` and `gap_length`.
     * `bbox_text`: Text boxes for the vehicle's class name (`class_id`) and vehicle ID (`track_id`). Each of the sets defines `display_length` to which to truncate the ID, and `textbox` (with `offset`, `padding`, `font_scale` and `thickness`).
 * `speed`: Parameters for rendering the speed values near the bounding boxes *(planned to be moved under the `track_state` section)*.
     * `unit`: One of `kilometres_per_hour`, `metres_per_second`. A conversion function will be used before rendering if necessary.
@@ -215,9 +200,7 @@ Defines two parameters under `stationary_global`:
     
 #### Colour palettes for individual vehicles
 
-*Example file: [`colours.yaml`](../examples/config/pipeline/components/visualiser/colour_palette/colours.yaml).*
-
-*Pydantic model: [`TrackColourPalette`](../tram_analytics/v1/pipeline/components/visualiser/config/colour_palette.py#L35).*
+*Example file: [`colours.yaml`](../examples/config/pipeline/components/visualiser/colour_palette/colours.yaml). Pydantic model: [`TrackColourPalette`](../tram_analytics/v1/pipeline/components/visualiser/config/colour_palette.py#L35).*
 
 To distinguish the different vehicles on any given frame more easily, a random colour palette from the ones defined in this file is chosen at the start of every vehicle's lifetime and maintained until the lifetime ends. An attempt to minimise the number of vehicles using the same palette is made by utilising a [wrapper](../common/utils/random/choose_unique_forever.py#L4) around [`random.sample`](https://docs.python.org/3/library/random.html#random.sample).
 
@@ -233,18 +216,14 @@ Every palette item is defined as follows:
 
 ### Dashboard server settings
 
-*Example file: [`dashboard.yaml`](../examples/config/dashboard/dashboard.yaml).*
-
-*Pydantic model: [`TrackColourPalette`](../tram_analytics/v1/dashboard/config.py#L3).*
+*Example file: [`dashboard.yaml`](../examples/config/dashboard/dashboard.yaml). Pydantic model: [`TrackColourPalette`](../tram_analytics/v1/dashboard/config.py#L3).*
 
 * `app_title`: The tab title for the browser.
 * `update_interval`: How often to poll the pipeline server for an update (in seconds).
 
 ### Rendering settings for the main dashboard
 
-*Example file: [`live_state_renderer.yaml`](../examples/config/dashboard/live_state_renderer.yaml).*
-
-*Pydantic model: [`LiveStateRendererConfig`](../tram_analytics/v1/dashboard/render/config.py#L6).*
+*Example file: [`live_state_renderer.yaml`](../examples/config/dashboard/live_state_renderer.yaml). Pydantic model: [`LiveStateRendererConfig`](../tram_analytics/v1/dashboard/render/config.py#L6).*
 
 These are passed to Jinja2 HTML [templates](../tram_analytics/v1/dashboard/render/templates) through [`LiveStateRenderer`](../tram_analytics/v1/dashboard/render/render.py#L14) to render the main dashboard section ([example screenshot](../docs/res/main_dashboard_rendered.png)).
 
