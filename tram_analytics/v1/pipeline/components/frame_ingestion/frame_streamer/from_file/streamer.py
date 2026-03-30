@@ -13,7 +13,8 @@ from tram_analytics.v1.pipeline.components.frame_ingestion.frame_streamer.from_f
 
 class EnhancedFrameStreamer(BaseFrameStreamer):
 
-    # TODO: merge with the base class
+    # TODO: move video start functionality, iterator to the base class
+    # TODO: Disable looping for network streams
 
     def __init__(self, config: EnhancedFrameStreamerConfig) -> None:
         # self._validate_file_path(config.video_resource_id)
