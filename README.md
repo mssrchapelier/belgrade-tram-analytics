@@ -1,5 +1,10 @@
 # belgrade-tram-analytics
 
+Quick links:
+* [Configuration guide](docs/config-readme.md)
+* [Sample configuration files](examples/config)
+* [Code for v1](tram_analytics/v1)
+
 ## What this is
 
 This repository contains a prototype system for obtaining and displaying **domain-specific traffic analytics** for tram zones (tracks and platforms) and occupying vehicles from a video stream in real time.
