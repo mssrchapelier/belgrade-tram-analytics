@@ -26,14 +26,17 @@ Additional settings for a video writer pipeline (`out_to` set to `file`):
 - `out_fps`: The target frame rate for the output video.
 
 Config file paths for individual modules (`config_paths`):
-- `frame_ingestion`: for the frame ingestion step;
-- `detection`: for the object (vehicle) detection step;
-- `homography`: to define point correspondences for building a homography matrix (pixel coordinates to world coordinates);
-- `zones`: to define zones of interest (tram tracks, platforms, intrusion zones for cars);
-- `speed`: for speed estimation;
-- `scene_events`: for the scene state updater;
-- `visualiser`: for image annotation;
-- `track_colours`: to define colour palettes for vehicle trajectory visualisation.
+
+*(click links to jump to sections)*
+
+- [`frame_ingestion`](#frame-ingestion): for the frame ingestion step;
+- [`detection`](#detection): for the object (vehicle) detection step;
+- [`homography`](#homography): to define point correspondences for building a homography matrix (pixel coordinates to world coordinates);
+- [`zones`](#zones): to define zones of interest (tram tracks, platforms, intrusion zones for cars);
+- [`speed`](#speeds): for speed estimation;
+- [`scene_events`](#scene-events): for the scene state updater;
+- [`visualiser`](#main-config): for image annotation;
+- [`track_colours`](#colour-palettes-for-individual-vehicles): to define colour palettes for vehicle trajectory visualisation.
 
 ### Frame ingestion
 
