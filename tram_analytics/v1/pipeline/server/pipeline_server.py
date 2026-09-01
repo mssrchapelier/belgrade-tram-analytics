@@ -24,7 +24,7 @@ class AppRoutes(Routable):
         super().__init__()
         self._cache: PipelineCache = cache
 
-    @get("/latest")
+    @get("/latest", response_model=PipelineArtefacts)
     async def get_latest_state(self) -> PipelineArtefacts:
         state: PipelineArtefacts = self._cache.get_latest_artefacts()
         return state
