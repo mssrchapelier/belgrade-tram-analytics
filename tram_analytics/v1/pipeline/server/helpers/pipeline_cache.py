@@ -6,7 +6,7 @@ from tram_analytics.v1.models.pipeline_artefacts import PipelineArtefacts
 from tram_analytics.v1.pipeline.server.helpers.packet import PipelinePacket
 
 
-class StaleReferenceException(Exception):
+class FrameNotFoundException(Exception):
     pass
 
 class PipelineCache:
@@ -61,5 +61,5 @@ class PipelineCache:
     def get_image_by_id(self, frame_id: str) -> bytes:
         packet: PipelinePacket | None = self._cache.get(frame_id)
         if packet is None:
-            raise StaleReferenceException(f"Frame packet {frame_id} not found in the cache (already discarded?)")
+            raise FrameNotFoundException(f"Frame packet {frame_id} not found in the cache (already discarded?)")
         return packet.annotated_image
