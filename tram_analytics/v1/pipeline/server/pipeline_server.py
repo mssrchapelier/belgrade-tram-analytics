@@ -5,14 +5,15 @@ from threading import Thread
 from typing import AsyncGenerator, TypedDict, Dict, Any
 
 from common.settings.cpu_settings import configure_cpu_inference_runtime
-
 configure_cpu_inference_runtime()
+from common.utils.asgi_utils import make_partial_combined_lifespan
 from common.settings.constants import PIPELINE_SERVER_HOST, PIPELINE_SERVER_PORT
 from tram_analytics.v1.pipeline.server.helpers.pipeline_cache import FrameNotFoundException, PipelineCache
 from tram_analytics.v1.pipeline.server.worker.worker import PipelineQueue, PipelineWrapper, _buffer_to_cache_worker
 from tram_analytics.v1.models.pipeline_artefacts import PipelineArtefacts
 
 import uvicorn
+from starlette.applications import Starlette
 from fastapi import FastAPI, Request, Response, HTTPException, status
 from classy_fastapi import Routable, get
 
@@ -68,7 +69,7 @@ def _get_app(buffer: PipelineQueue) -> FastAPI:
     cache: PipelineCache = PipelineCache(max_len=PIPELINE_CACHE_MAX_LEN)
 
     @asynccontextmanager
-    async def lifespan(fastapi_app: FastAPI) -> AsyncGenerator[AppState]:
+    async def lifespan(fastapi_app: Starlette) -> AsyncGenerator[AppState]:
         # TODO: change from a daemon thread to a shutdownable one
         buffer_to_cache_worker: Thread = Thread(
             target=_buffer_to_cache_worker,
@@ -85,7 +86,11 @@ def _get_app(buffer: PipelineQueue) -> FastAPI:
     api_routes: APIRoutes = APIRoutes()
     api_subapp.include_router(api_routes.router)
 
-    wrapper_app: FastAPI = FastAPI(lifespan=lifespan)
+    wrapper_app: FastAPI = FastAPI(
+        # combine own lifespan of the wrapper application
+        # and those of the sub-applications
+        lifespan=make_partial_combined_lifespan(own_lifespan=lifespan)
+    )
     wrapper_app.mount("/api", api_subapp)
 
     return wrapper_app
