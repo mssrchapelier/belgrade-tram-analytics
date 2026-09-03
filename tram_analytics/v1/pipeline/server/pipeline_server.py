@@ -2,7 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from multiprocessing import Queue
 from threading import Thread
-from typing import AsyncGenerator, Dict, Any
+from typing import AsyncGenerator, TypedDict, Dict, Any
 
 from common.settings.cpu_settings import configure_cpu_inference_runtime
 
@@ -13,20 +13,21 @@ from tram_analytics.v1.pipeline.server.worker.worker import PipelineQueue, Pipel
 from tram_analytics.v1.models.pipeline_artefacts import PipelineArtefacts
 
 import uvicorn
-from fastapi import FastAPI, Response, HTTPException, status
+from fastapi import FastAPI, Request, Response, HTTPException, status
 from classy_fastapi import Routable, get
 
 PIPELINE_CACHE_MAX_LEN: int = 50
 
-class AppRoutes(Routable):
+class AppState(TypedDict):
+    # To be used as the lifespan state for the main application.
+    cache: PipelineCache
 
-    def __init__(self, cache: PipelineCache):
-        super().__init__()
-        self._cache: PipelineCache = cache
+class APIRoutes(Routable):
 
     @get("/latest", response_model=PipelineArtefacts)
-    async def get_latest_state(self) -> PipelineArtefacts:
-        state: PipelineArtefacts = self._cache.get_latest_artefacts()
+    async def get_latest_state(self, request: Request) -> PipelineArtefacts:
+        cache: PipelineCache = request.state.cache
+        state: PipelineArtefacts = cache.get_latest_artefacts()
         return state
 
     _IMAGE_ENDPOINT_RESPONSES: Dict[int | str, Dict[str, Any]] | None = {
@@ -47,9 +48,10 @@ class AppRoutes(Routable):
          # which is not what it returns)
          response_class=Response
     )
-    async def get_image(self, frame_id: str) -> Response:
+    async def get_image(self, frame_id: str, request: Request) -> Response:
         try:
-            image: bytes = self._cache.get_image_by_id(frame_id)
+            cache: PipelineCache = request.state.cache
+            image: bytes = cache.get_image_by_id(frame_id)
             return Response(content=image,
                             media_type="image/jpeg")
         except FrameNotFoundException as e:
@@ -66,7 +68,7 @@ def _get_app(buffer: PipelineQueue) -> FastAPI:
     cache: PipelineCache = PipelineCache(max_len=PIPELINE_CACHE_MAX_LEN)
 
     @asynccontextmanager
-    async def lifespan(fastapi_app: FastAPI) -> AsyncGenerator[None]:
+    async def lifespan(fastapi_app: FastAPI) -> AsyncGenerator[AppState]:
         # TODO: change from a daemon thread to a shutdownable one
         buffer_to_cache_worker: Thread = Thread(
             target=_buffer_to_cache_worker,
@@ -74,10 +76,13 @@ def _get_app(buffer: PipelineQueue) -> FastAPI:
             daemon=True
         )
         buffer_to_cache_worker.start()
-        yield
+
+        # put the cache in a lifespan state to be accessed by sub-applications
+        state: AppState = AppState(cache=cache)
+        yield state
 
     api_subapp: FastAPI = FastAPI()
-    api_routes: AppRoutes = AppRoutes(cache)
+    api_routes: APIRoutes = APIRoutes()
     api_subapp.include_router(api_routes.router)
 
     wrapper_app: FastAPI = FastAPI(lifespan=lifespan)
