@@ -2,7 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 from multiprocessing import Queue
 from threading import Thread
-from typing import AsyncGenerator, TypedDict, Dict, Any
+from typing import AsyncGenerator, AsyncIterator, TypedDict, Dict, Any
 
 from common.settings.cpu_settings import configure_cpu_inference_runtime
 configure_cpu_inference_runtime()
@@ -11,11 +11,14 @@ from common.settings.constants import PIPELINE_SERVER_HOST, PIPELINE_SERVER_PORT
 from tram_analytics.v1.pipeline.server.helpers.pipeline_cache import FrameNotFoundException, PipelineCache
 from tram_analytics.v1.pipeline.server.worker.worker import PipelineQueue, PipelineWrapper, _buffer_to_cache_worker
 from tram_analytics.v1.models.pipeline_artefacts import PipelineArtefacts
+from tram_analytics.v1.pipeline.server.mcp_server import MCP_SERVER_NAME, get_latest_state as mcp_get_latest_state
 
 import uvicorn
 from starlette.applications import Starlette
 from fastapi import FastAPI, Request, Response, HTTPException, status
 from classy_fastapi import Routable, get
+from fastmcp import FastMCP
+from fastmcp.server.lifespan import lifespan as fastmcp_lifespan
 
 PIPELINE_CACHE_MAX_LEN: int = 50
 
@@ -26,7 +29,7 @@ class AppState(TypedDict):
 class APIRoutes(Routable):
 
     @get("/latest", response_model=PipelineArtefacts)
-    async def get_latest_state(self, request: Request) -> PipelineArtefacts:
+    async def _get_latest_state(self, request: Request) -> PipelineArtefacts:
         cache: PipelineCache = request.state.cache
         state: PipelineArtefacts = cache.get_latest_artefacts()
         return state
@@ -67,21 +70,34 @@ def _get_app(cache: PipelineCache) -> FastAPI:
     """
 
     @asynccontextmanager
-    async def lifespan(fastapi_app: Starlette) -> AsyncGenerator[AppState]:
+    async def _wrapper_app_lifespan(fastapi_app: Starlette) -> AsyncGenerator[AppState]:
         # put the cache in a lifespan state to be accessed by sub-applications
         state: AppState = AppState(cache=cache)
         yield state
+
+    @fastmcp_lifespan
+    async def _mcp_bareapp_lifespan(app: FastMCP) -> AsyncIterator[Dict[str, Any]]:
+        yield {"cache": cache}
 
     api_subapp: FastAPI = FastAPI()
     api_routes: APIRoutes = APIRoutes()
     api_subapp.include_router(api_routes.router)
 
+    mcp_subapp_bare: FastMCP = FastMCP(
+        name=MCP_SERVER_NAME,
+        lifespan=_mcp_bareapp_lifespan
+    )
+    mcp_subapp_bare.add_tool(mcp_get_latest_state)
+
+    mcp_subapp_asgi: Starlette = mcp_subapp_bare.http_app("/")
+
     wrapper_app: FastAPI = FastAPI(
         # combine own lifespan of the wrapper application
         # and those of the sub-applications
-        lifespan=make_partial_combined_lifespan(own_lifespan=lifespan)
+        lifespan=make_partial_combined_lifespan(own_lifespan=_wrapper_app_lifespan)
     )
     wrapper_app.mount("/api", api_subapp)
+    wrapper_app.mount("/mcp", mcp_subapp_asgi)
 
     return wrapper_app
 
