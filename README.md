@@ -127,7 +127,7 @@ If desired, the demo assets can be downloaded manually from the bucket through U
    
 5. Access:
    - the dashboard at `http://localhost:8091`;
-   - if desired, the pipeline API server at `http://localhost:8081/latest` at any moment to get the most recent cached master DTO as JSON.
+   - if desired, the pipeline API server at `http://localhost:8081/api/latest` at any moment to get the most recent cached master DTO as JSON.
 
 6. To stop the container:
    

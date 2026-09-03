@@ -58,7 +58,6 @@ class AppRoutes(Routable):
                 detail=f"Image with ID {frame_id} not found"
             ) from e
 
-
 def _get_app(buffer: PipelineQueue) -> FastAPI:
     """
     A factory for the FastAPI app.
@@ -77,13 +76,14 @@ def _get_app(buffer: PipelineQueue) -> FastAPI:
         buffer_to_cache_worker.start()
         yield
 
-    app: FastAPI = FastAPI(
-        lifespan=lifespan
-    )
-    routes: AppRoutes = AppRoutes(cache)
-    app.include_router(routes.router)
-    return app
+    api_subapp: FastAPI = FastAPI()
+    api_routes: AppRoutes = AppRoutes(cache)
+    api_subapp.include_router(api_routes.router)
 
+    wrapper_app: FastAPI = FastAPI(lifespan=lifespan)
+    wrapper_app.mount("/api", api_subapp)
+
+    return wrapper_app
 
 def _build_pipeline_wrapper(*, config_path: str,
                             buffer: PipelineQueue):
