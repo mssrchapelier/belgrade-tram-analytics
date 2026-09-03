@@ -3,7 +3,9 @@ __pycache__/
 .mypy_cache/
 
 # PyCharm settings
-/.idea
+/.idea/
+# VS Code settings
+/.code/
 
 # runtime environment -- dotenv file
 /.env
