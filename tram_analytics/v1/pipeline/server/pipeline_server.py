@@ -61,23 +61,13 @@ class APIRoutes(Routable):
                 detail=f"Image with ID {frame_id} not found"
             ) from e
 
-def _get_app(buffer: PipelineQueue) -> FastAPI:
+def _get_app(cache: PipelineCache) -> FastAPI:
     """
     A factory for the FastAPI app.
     """
 
-    cache: PipelineCache = PipelineCache(max_len=PIPELINE_CACHE_MAX_LEN)
-
     @asynccontextmanager
     async def lifespan(fastapi_app: Starlette) -> AsyncGenerator[AppState]:
-        # TODO: change from a daemon thread to a shutdownable one
-        buffer_to_cache_worker: Thread = Thread(
-            target=_buffer_to_cache_worker,
-            args=(buffer, cache),
-            daemon=True
-        )
-        buffer_to_cache_worker.start()
-
         # put the cache in a lifespan state to be accessed by sub-applications
         state: AppState = AppState(cache=cache)
         yield state
@@ -105,11 +95,20 @@ def _build_pipeline_wrapper(*, config_path: str,
 def run_pipeline_server(pipeline_config_path: str):
     buffer: PipelineQueue = Queue()
     try:
+        cache: PipelineCache = PipelineCache(max_len=PIPELINE_CACHE_MAX_LEN)
+        buffer_to_cache_worker: Thread = Thread(
+            target=_buffer_to_cache_worker,
+            args=(buffer, cache),
+            daemon=True
+        )
+        buffer_to_cache_worker.start()
+        
         pipeline: PipelineWrapper = _build_pipeline_wrapper(
             config_path=pipeline_config_path,
             buffer=buffer
         )
-        app: FastAPI = _get_app(buffer)
+        
+        app: FastAPI = _get_app(cache)
         with pipeline:
             logging.info("Starting the pipeline")
             uvicorn.run(app=app,
