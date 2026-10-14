@@ -11,9 +11,16 @@ Quick links:
 This repository contains a prototype system for obtaining and displaying **domain-specific traffic analytics** for tram zones (tracks and platforms) and occupying vehicles from a video stream in real time.
 
 <div align="center" width="100%">
-    <img src="./docs/res/project_showcase.png" alt="Project showcase: Overview of the rendered dashboard, examples of annotated images, and a diagram for the master data transfer object" align="center" width="30%" />
-    <img src="./docs/res/master_dto_full.png" alt="The entity relationship diagram for the master data transfer object" align="center" width="30%" />
-    <img src="./docs/res/main_dashboard_rendered.png" alt="The main section of the dashboard" align="center" width="30%" />
+    <div>
+        <!-- top image row -->
+        <img src="./docs/res/project_showcase.png" alt="Project showcase: Overview of the rendered dashboard, examples of annotated images, and a diagram for the master data transfer object" align="center" width="45%" />
+        <img src="./docs/res/master_dto_full.png" alt="The entity relationship diagram for the master data transfer object" align="center" width="45%" />
+    </div>
+    <div>
+        <!-- bottom image row -->
+        <img src="./docs/res/main_dashboard_rendered.png" alt="The main section of the dashboard" align="center" width="45%" />
+        <img src="./docs/res/mcp_openwebui_llm_chat_example.png" alt="Example of an LLM chat using the MCP tool for the master data transfer object" align="center" width="45%" />
+    </div>
 </div>
 
 ### Purpose
@@ -27,7 +34,7 @@ Domain-specific adaptations implemented in this system include:
 
 ### System overview
 
-The system is built around a core **processing pipeline** consisting of multiple stages ([frame ingestion](tram_analytics/v1/pipeline/components/frame_ingestion), [object detection](tram_analytics/v1/pipeline/components/detection), [tracking](tram_analytics/v1/pipeline/components/tracking), [speed, class-specific reference point and zone assignment](tram_analytics/v1/pipeline/components/vehicle_info), derived [domain-specific events](tram_analytics/v1/pipeline/components/scene_state/events), [live scene state](tram_analytics/v1/pipeline/components/scene_state/live_state_updater), [annotated image rendering](tram_analytics/v1/pipeline/components/visualiser)), and also includes an **[API server](tram_analytics/v1/pipeline/server)** and an **[operator dashboard](tram_analytics/v1/dashboard)** for real-time monitoring.
+The system is built around a core **processing pipeline** consisting of multiple stages ([frame ingestion](tram_analytics/v1/pipeline/components/frame_ingestion), [object detection](tram_analytics/v1/pipeline/components/detection), [tracking](tram_analytics/v1/pipeline/components/tracking), [speed, class-specific reference point and zone assignment](tram_analytics/v1/pipeline/components/vehicle_info), derived [domain-specific events](tram_analytics/v1/pipeline/components/scene_state/events), [live scene state](tram_analytics/v1/pipeline/components/scene_state/live_state_updater), [annotated image rendering](tram_analytics/v1/pipeline/components/visualiser)), and also includes an **[API server](tram_analytics/v1/pipeline/server)**, a small **[MCP server](tram_analytics/v1/pipeline/server/mcp_server.py)** for the use of LLM agents, and an **[operator dashboard](tram_analytics/v1/dashboard)** for real-time monitoring.
 
 For deployment, **[Docker images](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics)** for CPU-only / GPU runtimes and a set of demo assets (video, model weights, config file bundle; automatically pre-fetched from an R2 bucket) are provided.
 
@@ -39,6 +46,7 @@ The system is configured mainly through **a set of YAML configuration files** (s
 - real-time synchronous pipeline
 - YOLO v11 "nano" tram detector finetuned for one 320p camera on a manually curated dataset (a tram stop zone in Belgrade, Serbia -- [Nemanjina ulica, near Trg Slavija](https://www.openstreetmap.org/#map=19/44.803259/20.464447))
 - FastAPI server for the master DTO + annotated image
+- FastMCP server (one tool endpoint for the master DTO)
 - dashboard (Gradio base + Jinja2 HTML templates / CSS stylesheet)
 - Docker deployment for CPU-only and GPU targets (pre-built images are available [on Docker Hub](https://hub.docker.com/r/mssrchapelier/belgrade-tram-analytics))
 
@@ -127,7 +135,8 @@ If desired, the demo assets can be downloaded manually from the bucket through U
    
 5. Access:
    - the dashboard at `http://localhost:8091`;
-   - if desired, the pipeline API server at `http://localhost:8081/api/latest` at any moment to get the most recent cached master DTO as JSON.
+   - if desired, the pipeline API server at `http://localhost:8081/api/latest` at any moment to get the most recent cached master DTO as JSON;
+   - LLM-driven agentic systems can be pointed to `http://localhost:8081/mcp` to pull the same master DTO for their use.
 
 6. To stop the container:
    
