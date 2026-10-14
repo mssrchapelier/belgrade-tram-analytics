@@ -98,21 +98,26 @@ class BaseMotionStatusPeriodBoundaryEventsContainer[
 class MotionStatusStartEventsContainer(
     BaseMotionStatusPeriodBoundaryEventsContainer[StationaryStartEvent, MovingStartEvent]
 ):
+    """
+    A container for all events for this frame where a stationary/moving period for a vehicle started.
+    """
     pass
 
 # for end events
 class MotionStatusEndEventsContainer(
     BaseMotionStatusPeriodBoundaryEventsContainer[StationaryEndEvent, MovingEndEvent]
 ):
+    """
+    A container for all events for this frame where a stationary/moving period for a vehicle ended.
+    """
     pass
 
 # for all events
 class GlobalMotionStatusPeriodBoundaryEventsContainer(BaseSceneEventsContainer):
-
     """
-    A container for all start AND end events
-    for periods defined by vehicles' preserved confirmed motion status
-    that were registered for the frame.
+    A container for all start AND end events that were registered for this frame
+    for periods defined by the preserved confirmed motion status of vehicles
+    (namely, vehicles becoming/ceasing to be stationary and becoming/ceasing to be moving).
     """
 
     start: MotionStatusStartEventsContainer

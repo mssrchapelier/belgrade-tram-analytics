@@ -1,7 +1,7 @@
 from enum import StrEnum, auto
 from typing import Self, List
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, Field
 
 from common.utils.custom_types import PlanarPosition
 
@@ -64,10 +64,10 @@ def convert_speed(speed_ms: float | None, unit: SpeedDisplayUnit) -> float | Non
 
 
 class BoundingBox(BaseModel):
-    x1: float
-    x2: float
-    y1: float
-    y2: float
+    x1: float = Field(description="The position for the upper-left corner of the bounding box.")
+    x2: float = Field(description="The position for the upper-right corner of the bounding box.")
+    y1: float = Field(description="The position for the bottom-left corner of the bounding box.")
+    y2: float = Field(description="The position for the bottom-right corner of the bounding box.")
 
     @model_validator(mode="after")
     def _validate_coords(self) -> Self:

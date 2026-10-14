@@ -1,6 +1,6 @@
 from typing import Literal, List, override, Self
 
-from pydantic import model_validator
+from pydantic import model_validator, Field
 
 from tram_analytics.v1.models.common_types import VehicleType
 from tram_analytics.v1.models.components.scene_state.events.base import BasePeriodBoundaryVehicleEvent, \
@@ -24,7 +24,7 @@ class VehicleLifetimeStartEvent(BaseVehicleLifetimeEvent):
     i. e. the associated frame is the first one in which it has appeared.
     """
     boundary_type: Literal[EventBoundaryType.START] = EventBoundaryType.START
-    vehicle_type: VehicleType
+    vehicle_type: VehicleType = Field(description="The class assigned to this vehicle.")
 
 
 class VehicleLifetimeEndEvent(BaseVehicleLifetimeEvent):
@@ -48,8 +48,12 @@ class VehiclesLifetimeEventsContainer(BaseSceneEventsContainer):
     A container for all registered vehicle lifetime events for this frame.
     """
 
-    start: List[VehicleLifetimeStartEvent]
-    end: List[VehicleLifetimeEndEvent]
+    start: List[VehicleLifetimeStartEvent] = Field(
+        description="Vehicle lifetime start events for this frame."
+    )
+    end: List[VehicleLifetimeEndEvent] = Field(
+        description="Vehicle lifetime end events for this frame."
+    )
 
     @override
     @classmethod

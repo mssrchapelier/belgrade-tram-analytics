@@ -56,8 +56,8 @@ class AsyncLiveUpdateGetter:
         self._logger: Logger = logging.getLogger(get_logger_name_for_object(self))
 
         self._pipeline_server_base_url: str = f"http://{pipeline_server_hostname}:{pipeline_server_port}"
-        self._latest_endpoint: str = f"{self._pipeline_server_base_url}/latest"
-        self._image_endpoint: str = f"{self._pipeline_server_base_url}/image"
+        self._latest_endpoint: str = f"{self._pipeline_server_base_url}/api/latest"
+        self._image_endpoint: str = f"{self._pipeline_server_base_url}/api/image"
 
         self._session_provider: AsyncSessionProvider = session_provider
         self._thread_executor: ThreadPoolExecutor = ThreadPoolExecutor(

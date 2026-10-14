@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import override, Self
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, Field
 
 from tram_analytics.v1.models.components.scene_state.events.base import BaseSceneEventsContainer
 from tram_analytics.v1.models.components.scene_state.events.subprocessors.lifetime import \
@@ -18,14 +18,26 @@ from tram_analytics.v1.models.components.scene_state.events.subprocessors.zone_t
 class SceneEventsWrapper(BaseSceneEventsContainer):
 
     """
-    A container for all events emitted for one frame.
+    A container for all vehicle and zone-related events emitted for one frame.
     """
 
-    vehicle_lifetime: VehiclesLifetimeEventsContainer
-    speeds: SpeedUpdatesContainer
-    zone_transit: ZoneTransitEventsContainer
-    zone_occupancy: ZoneOccupancyEventsContainer
-    motion_status: MotionStatusEventsContainer
+    vehicle_lifetime: VehiclesLifetimeEventsContainer = Field(
+        description=(
+            "Vehicle lifetime events (detection of new vehicles; stopping of tracking for a vehicle)."
+        )
+    )
+    speeds: SpeedUpdatesContainer = Field(
+        description="Speed updates (current speeds for vehicles)."
+    )
+    zone_transit: ZoneTransitEventsContainer = Field(
+        description="Zone transit events (vehicles entering/exiting zones)."
+    )
+    zone_occupancy: ZoneOccupancyEventsContainer = Field(
+        description="Zone occupancy events (zones becoming occupied/empty)."
+    )
+    motion_status: MotionStatusEventsContainer = Field(
+        description="Vehicle motion status updates (vehicles becoming stationary/moving (as per assignment rules))."
+    )
 
     @override
     @classmethod

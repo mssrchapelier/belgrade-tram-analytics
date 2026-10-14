@@ -2,12 +2,15 @@ from datetime import datetime
 
 import numpy as np
 from numpy._typing import NDArray
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class FrameMetadata(BaseModel):
-    frame_id: str
-    camera_id: str
+    """
+    Metadata for an individual frame.
+    """
+    frame_id: str = Field(description="The UUID of the frame.")
+    camera_id: str = Field(description="The ID of the camera that produced this frame.")
     timestamp: datetime
 
 

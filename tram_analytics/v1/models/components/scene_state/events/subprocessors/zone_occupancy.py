@@ -1,6 +1,6 @@
 from typing import Literal, List, override, Self
 
-from pydantic import model_validator
+from pydantic import model_validator, Field
 
 from tram_analytics.v1.models.components.scene_state.events.base import BasePeriodBoundaryEvent, EventBoundaryType, \
     BaseSceneEventsContainer
@@ -12,7 +12,9 @@ class BaseZoneOccupancyEvent(BasePeriodBoundaryEvent):
     a continuous period during which there is at least one vehicle in the zone.
     """
 
-    zone_id: str
+    zone_id: str = Field(
+        description="The ID of the zone with which this event is associated."
+    )
 
 class ZoneOccupancyStartEvent(BaseZoneOccupancyEvent):
     """
@@ -36,8 +38,12 @@ class ZoneOccupancyEventsContainer(BaseSceneEventsContainer):
     A container for all registered zone occupancy events for this frame.
     """
 
-    start: List[ZoneOccupancyStartEvent]
-    end: List[ZoneOccupancyEndEvent]
+    start: List[ZoneOccupancyStartEvent] = Field(
+        description="All zone entrance events for this frame."
+    )
+    end: List[ZoneOccupancyEndEvent] = Field(
+        description="All zone exit events for this frame."
+    )
 
     @override
     @classmethod
