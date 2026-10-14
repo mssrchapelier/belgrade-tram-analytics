@@ -1,6 +1,6 @@
 from typing import List, Set, Self, Literal, Tuple, Sequence, override
 
-from pydantic import model_validator
+from pydantic import model_validator, Field
 
 from tram_analytics.v1.models.common_types import MotionStatus
 from tram_analytics.v1.models.components.scene_state.events.base import (
@@ -19,8 +19,12 @@ class BaseInZoneMotionStatusPeriodBoundaryEvent(BasePeriodBoundaryVehicleEvent):
     Example: a tram's stop at a platform, as defined for a specific tram and a specific platform.
     """
 
-    confirmed_motion_status: MotionStatus
-    zone_id: str
+    confirmed_motion_status: MotionStatus = Field(
+        description="The motion status type that defines this period."
+    )
+    zone_id: str = Field(
+        description="The ID of the zone with which this period is associated."
+    )
 
 def _extract_vehicle_zone_id_pairs(events: Sequence[BaseInZoneMotionStatusPeriodBoundaryEvent]) -> Set[Tuple[str, str]]:
     return {(e.vehicle_id, e.zone_id) for e in events}
@@ -109,17 +113,24 @@ class BaseInZoneMotionStatusPeriodBoundaryEventsContainer[
 class InZoneMotionStatusStartEventsContainer(
     BaseInZoneMotionStatusPeriodBoundaryEventsContainer[InZoneStationaryStartEvent, InZoneMovingStartEvent]
 ):
+    """
+    A container for all events where the motion status period (stationary/moving) 
+    begins for a certain vehicle in a certain zone.
+    """
     pass
 
 # for end events
 class InZoneMotionStatusEndEventsContainer(
     BaseInZoneMotionStatusPeriodBoundaryEventsContainer[InZoneStationaryEndEvent, InZoneMovingEndEvent]
 ):
+    """
+    A container for all events where the motion status period (stationary/moving) 
+    ends for a certain vehicle in a certain zone.
+    """
     pass
 
 # master
 class InZoneMotionStatusPeriodBoundaryEventsContainer(BaseSceneEventsContainer):
-
     """
     A container for all start AND end events for in-zone motion status periods
     produced for the frame.

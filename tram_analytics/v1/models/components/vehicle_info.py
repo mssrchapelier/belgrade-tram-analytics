@@ -62,10 +62,16 @@ class VehicleReferencePoint(str, Enum):
 # --- speeds ---
 
 class Speeds(BaseModel):
-    raw: NonNegativeFloat | None
-    smoothed: NonNegativeFloat | None
+    raw: NonNegativeFloat | None = Field(
+        description="The raw (non-smoothed) speed for this vehicle."
+    )
+    smoothed: NonNegativeFloat | None = Field(
+        description="The smoothed speed for this vehicle (as per the speed smoothing settings for the pipeline.)"
+    )
 
 # --- master container objects ---
+
+# intermediate internal DTOs
 
 class BaseVehicleInfoInternal[RefPoints: BaseRefPoints](BaseModel):
     # track_state_id: str
@@ -91,24 +97,48 @@ class TramInfoInternal(BaseVehicleInfoInternal[TramRefPoints]):
 class CarInfoInternal(BaseVehicleInfoInternal[CarRefPoints]):
     pass
 
+# API DTOs
+
 class BaseVehicleInfo(BaseModel):
-    vehicle_id: str
-    frame_ts: datetime
+    vehicle_id: str = Field(description="The unique ID assigned to this vehicle.")
+    frame_ts: datetime = Field(description="The timestamp associated with the frame.")
 
     # Whether the track state is matched (i. e. has a detection associated with it
     # rather than being a continuation hypothesis for the tracklet).
-    is_matched: bool
-    zone_ids: Set[str]
-    speeds: Speeds
-    reference_points: BaseRefPoints
+    is_matched: bool = Field(
+        description=(
+            "Whether the underlying track state is matched (i. e. has a detection "
+            "associated with it rather than being a continuation hypothesis "
+            "for the tracklet)."
+        )
+    )
+    zone_ids: Set[str] = Field(
+        description="The IDs of the zones to which this vehicle is currently assigned."
+    )
+    speeds: Speeds = Field(
+        description="The current computed speed values for this vehicle."
+    )
+    reference_points: BaseRefPoints = Field(
+        description="The computed reference points used to assign the zones for this vehicle."
+    )
 
 class TramInfo(BaseVehicleInfo):
-    vehicle_type: Literal[VehicleType.TRAM] = VehicleType.TRAM
-    reference_points: TramRefPoints
+    vehicle_type: Annotated[
+        Literal[VehicleType.TRAM],
+        Field(description="The class of this vehicle.")
+    ] = VehicleType.TRAM
+    reference_points: TramRefPoints = Field(
+        description="The computed reference points used to assign the zones for this vehicle."
+    )
 
 class CarInfo(BaseVehicleInfo):
-    vehicle_type: Literal[VehicleType.CAR] = VehicleType.CAR
-    reference_points: CarRefPoints
+    vehicle_type: Annotated[
+        Literal[VehicleType.CAR],
+        Field(description="The class of this vehicle.")
+    ] = VehicleType.CAR
+    reference_points: CarRefPoints = Field(
+        description="The computed reference points used to assign the zones for this vehicle."
+    )
 
 VehicleInfo: TypeAlias = Annotated[
     TramInfo | CarInfo,

@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Sequence, Self, TypeAlias, List, override
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, model_validator, Field
 
 from common.utils.random.id_gen import get_uuid
 
@@ -18,17 +18,24 @@ class BaseEvent(BaseModel):
     # so can be swapped, more generally, for a "scene ID" in a multi-camera environment
     # (or applied to other spatial scenarios in general, not necessarily those
     # where computer vision is being employed), without any changes to this event hierarchy.
-    camera_id: str
-    # The unique ID for this event.
-    event_id: str
-    # The timestamp associated with this event.
-    event_ts: datetime
-    # A flag describing whether the timestamp corresponds to either the beginning
-    # or the end of the observation period (started/stopped processing).
-    # This signals any downstream processors to treat such events in a special way if needed
-    # (for example, that the computed duration of the vehicle's presence inside a specific zone
-    # is truncated because processing started/stopped during it).
-    truncated: bool
+    camera_id: str = Field(
+        description="The ID of the source camera (stream) with which this event is associated."
+    )
+    event_id: str = Field(
+        description="The unique ID for this event."
+    )
+    event_ts: datetime = Field(
+        description="The timestamp associated with this event."
+    )
+    truncated: bool = Field(
+        description=(
+            "A flag describing whether the timestamp corresponds to either the beginning "
+            "or the end of the observation period (started/stopped processing). "
+            "This signals any downstream processors to treat such events in a special way if needed "
+            "(for example, that the computed duration of the vehicle's presence inside a specific zone "
+            "is truncated because processing started/stopped during it)."
+        )
+    )
 
 def generate_event_uuid() -> str:
     return get_uuid()
@@ -43,10 +50,10 @@ class BasePeriodBoundaryEvent(BaseEvent):
     of a specific continuous period of time (e. g. the vehicle's lifetime,
     the vehicle's occupance of a specific zone, etc.)
     """
-    # Whether this event represents the start or the end of the associated period.
-    boundary_type: EventBoundaryType
-    # The unique ID of the associated period.
-    period_id: str
+    boundary_type: EventBoundaryType = Field(
+        description="Whether this event represents the start or the end of the associated period."
+    )
+    period_id: str = Field(description="The unique ID of the associated period.")
 
 def generate_period_uuid() -> str:
     return get_uuid()
@@ -59,10 +66,14 @@ class BaseStatusEvent(BaseEvent):
     pass
 
 class BasePeriodBoundaryVehicleEvent(BasePeriodBoundaryEvent):
-    vehicle_id: str
+    vehicle_id: str = Field(
+        description="The ID of the vehicle with which this event is associated."
+    )
 
 class BaseStatusVehicleEvent(BaseStatusEvent):
-    vehicle_id: str
+    vehicle_id: str = Field(
+        description="The ID of the vehicle with which this event is associated."
+    )
 
 # Represents any event associated with a specific vehicle.
 VehicleEvent: TypeAlias = BasePeriodBoundaryVehicleEvent | BaseStatusVehicleEvent
@@ -90,6 +101,10 @@ class BaseSceneEventsContainer(BaseModel, ABC):
 
 
 class BaseStatusVehicleEventsContainer[Event: BaseStatusVehicleEvent](BaseSceneEventsContainer):
+    """
+    A base container for a group of events conveying status events for vehicles,
+    as opposed to period start/end. Examples: speed / motion status updates.
+    """
 
     updates: List[Event]
 

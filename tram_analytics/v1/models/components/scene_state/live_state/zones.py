@@ -2,7 +2,7 @@ from _operator import xor
 from datetime import datetime
 from typing import List, Self, Literal
 
-from pydantic import BaseModel, PositiveInt, NonNegativeInt, model_validator
+from pydantic import BaseModel, PositiveInt, NonNegativeInt, model_validator, Field
 
 from tram_analytics.v1.models.common_types import VehicleType
 
@@ -105,13 +105,17 @@ class PeriodsForZone(BaseModel):
 # --- zone metadata ---
 
 class BaseZoneMetadata(BaseModel):
-    # the unique ID for this zone
-    zone_id: str
-    # the camera-specific, zone type-specific numerical ID for ease of readability
-    # (e. g.: track 2, platform 1, intrusion zone 1)
-    zone_numerical_id: int
-    # a text description of the zone
-    description: str
+    zone_id: str = Field(description="The unique ID for this zone.")
+    zone_numerical_id: int = Field(
+        description=(
+            "The numerical ID assigned to this zone for ease of readability "
+            "that is specific to this scene and zone type "
+            "(examples: 2 for Track 2, 3 for Platform 3, 1 for Car intrusion zone 1)."
+        )
+    )
+    description: str = Field(
+        description="A textual description for this zone."
+    )
 
 class AgnosticZoneMetadata(BaseZoneMetadata):
     pass
@@ -123,8 +127,9 @@ class TrackMetadata(BaseTramZoneMetadata):
     pass
 
 class PlatformMetadata(BaseTramZoneMetadata):
-    # the ID of the track to which this platform belongs
-    track_zone_id: str
+    track_zone_id: str = Field(
+        description="The unique ID of the tram track to which this platform belongs."
+    )
 
 class BaseCarZoneMetadata(BaseZoneMetadata):
     pass
@@ -146,7 +151,13 @@ class BaseZone[Metadata: BaseZoneMetadata](BaseModel):
     # (1) occupancy periods (when at least one vehicle is present in the zone) -- current and last completed;
     # (2) the last pass completed by a vehicle.
     # Useful for tracking the use of the zone generally.
-    occupancy: PeriodsForZone
+    occupancy: PeriodsForZone = Field(
+        description=(
+            "Data related to vehicles being present in the zone "
+            "(occupancy periods; last pass completed by a vehicle). "
+            "Useful for tracking the use of the zone generally."
+        )
+    )
 
     # Data related to vehicles being stationary in the zone:
     # (1) the current and the last completed periods during which
@@ -154,7 +165,16 @@ class BaseZone[Metadata: BaseZoneMetadata](BaseModel):
     # (2) the last stop completed by a vehicle.
     # Useful for tracking stops of public transport
     # and of traffic congestion inside the zone.
-    stops: PeriodsForZone
+    stops: PeriodsForZone = Field(
+        description=(
+            "Data related to vehicles being stationary in the zone "
+            "(periods with at least one stationary vehicle in the zone -- "
+            "current and last completed; "
+            "last stop completed in the zone by a vehicle). "
+            "Useful for tracking stops of public transport "
+            "and of traffic congestion inside the zone."
+        )
+    )
 
 class AgnosticZone(BaseZone[AgnosticZoneMetadata]):
     pass
@@ -168,22 +188,37 @@ class BaseCarZone[Metadata: BaseCarZoneMetadata](BaseZone[Metadata]):
     target_vehicle_type: Literal[VehicleType.CAR] = VehicleType.CAR
 
 class Track(BaseTramZone[TrackMetadata]):
+    """
+    Analytics for a tram track.
+    """
     pass
 
 class Platform(BaseTramZone[PlatformMetadata]):
+    """
+    Analytics for a tram platform (stop).
+    """
     pass
 
 class IntrusionZone(BaseCarZone[IntrusionZoneMetadata]):
+    """
+    Analytics for a monitored car intrusion zone.
+    """
     pass
 
 class BaseZoneGroupsByVehicleTypeContainer(BaseModel):
     pass
 
 class ZoneGroupsForTramContainer(BaseZoneGroupsByVehicleTypeContainer):
+    """
+    Analytics for zones associated with trams.
+    """
     tracks: List[Track]
     platforms: List[Platform]
 
 class ZoneGroupsForCarContainer(BaseZoneGroupsByVehicleTypeContainer):
+    """
+    Analytics for zones associated with cars.
+    """
     intrusion_zones: List[IntrusionZone]
 
 class BaseZonesContainer(BaseModel):
@@ -193,5 +228,8 @@ class AgnosticZonesContainer(BaseZonesContainer):
     all_zones: List[AgnosticZone]
 
 class ZonesContainer(BaseZonesContainer):
+    """
+    Analytical data for zones.
+    """
     tram_zones: ZoneGroupsForTramContainer
     car_zones: ZoneGroupsForCarContainer
