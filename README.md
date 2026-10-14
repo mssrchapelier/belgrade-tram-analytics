@@ -11,9 +11,9 @@ Quick links:
 This repository contains a prototype system for obtaining and displaying **domain-specific traffic analytics** for tram zones (tracks and platforms) and occupying vehicles from a video stream in real time.
 
 The system can, as of this moment, be used in the following modes:
-- through the web dashboard showing the analytics and the annotated current camera frame;
-- programmatically through the REST API endpoints;
-- by LLM agents sending requests to the supplied MCP server.
+- through the **web dashboard** showing the analytics and the annotated current camera frame;
+- programmatically through the **REST API endpoints**;
+- by LLM agents sending requests to the supplied **MCP server**.
 
 <div align="center" width="100%">
     <div>
